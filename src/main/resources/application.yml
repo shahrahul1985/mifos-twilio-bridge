@@ -16,13 +16,17 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:hsqldb:file:smsmoduledb
-    username: sa
-    password:
-    driver-class-name: org.hsqldb.jdbcDriver
+    url: jdbc:mysql://localhost:3306/mifosplatform-sms
+    username: root
+    password: mysql
+    driver-class-name: com.mysql.jdbc.Driver
 
 # message templates
 message:
   template:
     createclient: Hello $name, welcome at Mifos X!
     loanrepayment: Hello $name, repayment for $account received!
+    loandisbursed: Dear $clientName, your loan has been disbursed, Collect your cheque at the group office, $branch!
+    loanApproval: Dear $guarantorName, you have been added as a guarantor to $lonee by $amountCommited, $branch
+    savingsAccountClosure: Dear $clientName, your account has been closed, collect your savings of $savingAmount, $branch!	
+    clientPayments: Dear $clientName, we have received your payment of $totalAmount, $branch, Our pay bill no is $billNumber

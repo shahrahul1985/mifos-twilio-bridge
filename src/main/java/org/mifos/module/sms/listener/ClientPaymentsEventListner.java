@@ -1,0 +1,150 @@
+package org.mifos.module.sms.listener;
+
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.mifos.module.sms.domain.Client;
+import org.mifos.module.sms.domain.CreateClientResponse;
+import org.mifos.module.sms.domain.EventSource;
+import org.mifos.module.sms.domain.Loan;
+import org.mifos.module.sms.domain.LoanApprovalToGuarantorsResponse;
+import org.mifos.module.sms.domain.SMSBridgeConfig;
+import org.mifos.module.sms.event.ClientPaymentsEvent;
+import org.mifos.module.sms.event.LoanApprovalToGuarantorsEvent;
+import org.mifos.module.sms.exception.SMSGatewayException;
+import org.mifos.module.sms.parser.JsonParser;
+import org.mifos.module.sms.provider.RestAdapterProvider;
+import org.mifos.module.sms.provider.SMSGateway;
+import org.mifos.module.sms.provider.SMSGatewayProvider;
+import org.mifos.module.sms.repository.EventSourceRepository;
+import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
+import org.mifos.module.sms.service.MifosClientPaymentsService;
+import org.mifos.module.sms.service.MifosClientService;
+import org.mifos.module.sms.service.MifosLoanApprovalService;
+import org.mifos.module.sms.util.AuthorizationTokenBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+
+@Component
+public class ClientPaymentsEventListner implements ApplicationListener<ClientPaymentsEvent> {
+
+	@Value("${message.template.clientPayments}")
+	private String messageTemplate;
+	
+	private static final Logger logger = LoggerFactory.getLogger(ClientPaymentsEventListner.class);
+	
+	private final SMSBridgeConfigRepository smsBridgeConfigRepository;
+	private final EventSourceRepository eventSourceRepository;
+	private final RestAdapterProvider restAdapterProvider;
+	private final SMSGatewayProvider smsGatewayProvider;
+	private final JsonParser jsonParser;
+	
+	@Autowired
+	public ClientPaymentsEventListner(SMSBridgeConfigRepository smsBridgeConfigRepository,
+												EventSourceRepository eventSourceRepository,
+												RestAdapterProvider restAdapterProvider,
+												SMSGatewayProvider smsGatewayProvider, JsonParser jsonParser) {
+		super();
+		this.smsBridgeConfigRepository = smsBridgeConfigRepository;
+		this.eventSourceRepository = eventSourceRepository;
+		this.restAdapterProvider = restAdapterProvider;
+		this.smsGatewayProvider = smsGatewayProvider;
+		this.jsonParser = jsonParser;
+	}
+
+	@Transactional
+	@Override
+	public void onApplicationEvent(ClientPaymentsEvent clientPaymentsEvent) {
+		
+		logger.info("Client payments event received, trying to process ...");
+		
+		final EventSource eventSource = this.eventSourceRepository.findOne(clientPaymentsEvent.getEventId());
+		
+		final SMSBridgeConfig smsBridgeConfig = this.smsBridgeConfigRepository.findByTenantId(eventSource.getTenantId());
+		if (smsBridgeConfig == null) {
+			logger.error("Unknown tenant " + eventSource.getTenantId() + "!");
+			return;
+		}
+		
+		CreateClientResponse createClientResponse = this.jsonParser.parse(eventSource.getPayload(), CreateClientResponse.class);
+		
+		final long clientId = createClientResponse.getClientId();
+		
+		final long savingsId = createClientResponse.getSavingsId();
+		
+		final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
+		
+		try {
+			final String authToken = AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build();
+			
+			final MifosClientPaymentsService clientPaymentsService = restAdapter.create(MifosClientPaymentsService.class);
+			final Loan loan = loanService.findLoan(authToken, smsBridgeConfig.getTenantId(), loanId);
+			
+			final MifosClientService clientService = restAdapter.create(MifosClientService.class);
+			final Client client = clientService.findClient(authToken, smsBridgeConfig.getTenantId(), clientId);
+			
+			loan.guarantorsData(loan.getGuarantors());
+			
+			List<Long> guarantorIdList = new ArrayList<Long>();
+			guarantorIdList = loan.getGuarantorsId();
+			
+			for(int i=0; i<guarantorIdList.size(); i++){
+				
+				System.out.println(guarantorIdList.get(i));
+				
+				if (guarantorIdList.get(i) != null) {
+					
+					Long guarantorId = guarantorIdList.get(i);
+					final Client guarantor = clientService.findClient(authToken, smsBridgeConfig.getTenantId(), guarantorId);
+					
+					Double amount = null;
+					if (loan.getAmount() != null) {
+						amount = loan.getAmount().get(i);
+					}
+					
+					final String mobileNo = guarantor.getMobileNo();
+					if (mobileNo != null) {
+						logger.info("Mobile number found, sending message!");
+						
+						final VelocityContext velocityContext = new VelocityContext();
+						velocityContext.put("guarantorName", guarantor.getDisplayName());
+						velocityContext.put("lonee", client.getDisplayName());
+						velocityContext.put("amountCommited", amount);
+						velocityContext.put("branch", client.getOfficeName());
+						
+						final StringWriter stringWriter = new StringWriter();
+						Velocity.evaluate(velocityContext, stringWriter, "LoanApprovalToGuarantorsMessage", this.messageTemplate);
+						
+						final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
+						smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+					}
+				}
+			}
+			eventSource.setProcessed(Boolean.TRUE);
+			logger.info("Loan approval to guarantors event processed!");
+		} catch(RetrofitError ret) {
+			if (ret.getResponse().getStatus() == 404) {
+				logger.info("Loan not found!");
+			}
+			eventSource.setProcessed(Boolean.FALSE);
+			eventSource.setErrorMessage(ret.getMessage());
+		} catch (SMSGatewayException sgex) {
+			eventSource.setProcessed(Boolean.FALSE);
+			eventSource.setErrorMessage(sgex.getMessage());
+		}
+		eventSource.setLastModifiedOn(new Date());
+		this.eventSourceRepository.save(eventSource);
+	}
+}

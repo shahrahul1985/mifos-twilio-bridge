@@ -21,7 +21,9 @@ public enum EventType {
 
     CREATE_CLIENT("client", "create"),
     LOAN_REPAYMENT("loan", "repayment"),
-    SEND_SMS("sms", "send");
+    LOAN_DISBURSEMENT("loan", "disburse"),
+    SEND_SMS("sms", "send"),
+    LOAN_APPROVAL_TO_GUARANTORS("loan", "approve");
 
     private String entity;
     private String action;
