@@ -16,13 +16,14 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:hsqldb:file:smsmoduledb
-    username: sa
-    password:
-    driver-class-name: org.hsqldb.jdbcDriver
+    url: jdbc:mysql://localhost:3306/mifosplatform-sms
+    username: root
+    password: mysql
+    driver-class-name: com.mysql.jdbc.Driver
 
 # message templates
 message:
   template:
-    createclient: Hello $name, welcome at Mifos X!
+    createclient: Dear $name, welcome to $branch, your member no is $externalid,Have a blessed day. 
     loanrepayment: Hello $name, repayment for $account received!
+    savingsaccountclose: Dear $name, your account has been closed, collect your savings of $amount . $branch .

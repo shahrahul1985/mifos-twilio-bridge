@@ -5,6 +5,7 @@ import org.mifos.module.sms.domain.SMSBridgeConfig;
 import org.mifos.module.sms.event.CreateClientEvent;
 import org.mifos.module.sms.event.EventType;
 import org.mifos.module.sms.event.LoanRepaymentEvent;
+import org.mifos.module.sms.event.SavingsAccountCloseEvent;
 import org.mifos.module.sms.event.SendSMSEvent;
 import org.mifos.module.sms.repository.EventSourceRepository;
 import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
@@ -93,6 +94,9 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
                 break;
             case SEND_SMS:
                 this.eventPublisher.publishEvent(new SendSMSEvent(this, eventId));
+                break;
+            case SAVINGSACCOUNT_CLOSE:
+                this.eventPublisher.publishEvent(new SavingsAccountCloseEvent(this, eventId));
                 break;
         }
     }

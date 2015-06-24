@@ -20,6 +20,8 @@ public class Client {
     private String lastname;
     private String displayName;
     private String mobileNo;
+    private String officeName;
+    private String externalId;
 
     public Client() {
         super();
@@ -56,4 +58,21 @@ public class Client {
     public void setMobileNo(String mobileNo) {
         this.mobileNo = mobileNo;
     }
+
+	public String getOfficeName() {
+		return officeName;
+	}
+
+	public void setOfficeName(String officeName) {
+		this.officeName = officeName;
+	}
+
+	public String getExternalId() {
+		return externalId;
+	}
+
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
+	}
+    
 }
