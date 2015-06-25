@@ -19,7 +19,7 @@ public class CreateClientResponse {
 
     private long officeId;
     private long clientId;
-    private long resourceIs;
+    private long resourceId;
     private long savingsId;
 
     public CreateClientResponse() {
@@ -42,12 +42,12 @@ public class CreateClientResponse {
         this.clientId = clientId;
     }
 
-    public long getResourceIs() {
-        return resourceIs;
+    public long getResourceId() {
+        return resourceId;
     }
 
-    public void setResourceIs(long resourceIs) {
-        this.resourceIs = resourceIs;
+    public void setResourceId(long resourceId) {
+        this.resourceId = resourceId;
     }
 
     public long getSavingsId() {

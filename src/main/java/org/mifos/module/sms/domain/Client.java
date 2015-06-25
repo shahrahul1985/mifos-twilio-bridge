@@ -74,5 +74,4 @@ public class Client {
 	public void setExternalId(String externalId) {
 		this.externalId = externalId;
 	}
-    
 }

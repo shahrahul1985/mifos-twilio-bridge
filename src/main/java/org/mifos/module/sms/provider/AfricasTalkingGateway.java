@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.Map.Entry;
-
 import org.json.*;
 import org.mifos.module.sms.domain.SMSBridgeConfig;
 import org.mifos.module.sms.event.SavingsAccountCloseEvent;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AfricasTalkingGateway implements SMSGateway
 {
-    private static final Logger logger = LoggerFactory.getLogger(SavingsAccountCloseEvent.class);
+    private static final Logger logger = LoggerFactory.getLogger(AfricasTalkingGateway.class);
     private String _username;
     private String _apiKey;
     private int responseCode;
@@ -361,7 +360,7 @@ public class AfricasTalkingGateway implements SMSGateway
 		try {
 			AfricasTalkingGateway africasTalkingGateway=new AfricasTalkingGateway(smsBridgeConfig.getSmsProviderAccountId(),smsBridgeConfig.getSmsProviderToken());
 			if(mobileNo!=null){
-			logger.info("Mobile number found sending message to "+mobileNo);
+			logger.info("Sending message to "+mobileNo);
 			africasTalkingGateway.sendMessage(mobileNo,message);
 			}
 		} catch (Exception e) {

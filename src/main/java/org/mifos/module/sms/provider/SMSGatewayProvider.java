@@ -31,7 +31,6 @@ public class SMSGatewayProvider implements ApplicationContextAware {
         }else if(smsGatewayProvider.equalsIgnoreCase("africastalking")){
         	return this.applicationContext.getBean(AfricasTalkingGateway.class);
         }
-
         throw new UnsupportedOperationException("Unsupported SMS Gateway Provider: " + smsGatewayProvider);
     }
 
