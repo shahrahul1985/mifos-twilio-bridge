@@ -1,9 +1,14 @@
 package org.mifos.module.sms.domain;
 
-import java.util.ArrayList;
 import java.util.Date;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "event_sourcing_details")
@@ -70,8 +75,19 @@ public class EventSourceDetail {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastModifiedOn;
 
+    @Column(name = "report_name")
+    private String reportName;
+
     public EventSourceDetail() {
         super();
+    }
+
+    public String getReportName() {
+        return this.reportName;
+    }
+
+    public void setReportName(String reportName) {
+        this.reportName = reportName;
     }
 
     public Long getId() {
