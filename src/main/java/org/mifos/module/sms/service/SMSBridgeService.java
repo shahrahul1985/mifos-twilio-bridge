@@ -2,11 +2,11 @@ package org.mifos.module.sms.service;
 
 import org.mifos.module.sms.domain.EventSource;
 import org.mifos.module.sms.domain.SMSBridgeConfig;
+import org.mifos.module.sms.event.ClientPaymentsEvent;
 import org.mifos.module.sms.event.CreateClientEvent;
 import org.mifos.module.sms.event.EventType;
 import org.mifos.module.sms.event.LoanApprovalToGuarantorsEvent;
 import org.mifos.module.sms.event.LoanDisbursementEvent;
-import org.mifos.module.sms.event.LoanRepaymentEvent;
 import org.mifos.module.sms.event.SendSMSEvent;
 import org.mifos.module.sms.repository.EventSourceRepository;
 import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
@@ -91,7 +91,8 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
                 this.eventPublisher.publishEvent(new CreateClientEvent(this, eventId));
                 break;
             case LOAN_REPAYMENT:
-                this.eventPublisher.publishEvent(new LoanRepaymentEvent(this, eventId));
+               // this.eventPublisher.publishEvent(new LoanRepaymentEvent(this, eventId));
+                this.eventPublisher.publishEvent(new ClientPaymentsEvent(this, eventId));
                 break;
             case LOAN_DISBURSEMENT:
             	this.eventPublisher.publishEvent(new LoanDisbursementEvent(this, eventId));
@@ -102,6 +103,9 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
             case LOAN_APPROVAL_TO_GUARANTORS:
                 this.eventPublisher.publishEvent(new LoanApprovalToGuarantorsEvent(this, eventId));
                 break;
+            case CLIENT_PAYMENTS:
+                this.eventPublisher.publishEvent(new ClientPaymentsEvent(this, eventId));
+                break;    
         }
     }
 

@@ -2,16 +2,15 @@ package org.mifos.module.sms.domain;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 public class SavingsAccount {
 
 	private long id;
 	private String clientName;
-	private List<JsonArray> transactions = new ArrayList<JsonArray>();
+	private List<JsonObject> transactions = new ArrayList<JsonObject>();
 	private BigDecimal amount;
 	
 	public SavingsAccount() {
@@ -42,12 +41,12 @@ public class SavingsAccount {
 		this.clientName = clientName;
 	}
 
-	public List<JsonArray> getTransactions() {
+	public List<JsonObject> getTransactions() {
 		return transactions;
 	}
 
 	public void setTransactions(
-			List<JsonArray> transactions) {
+			List<JsonObject> transactions) {
 		this.transactions = transactions;
 	}
 	
