@@ -24,7 +24,8 @@ public enum EventType {
     SAVINGSACCOUNT_CLOSE("SavingsAccount","Close"),
     LOAN_DISBURSEMENT("loan", "disburse"),
     SEND_SMS("sms", "send"),
-    LOAN_APPROVAL_TO_GUARANTORS("loan", "approve");
+    LOAN_APPROVAL_TO_GUARANTORS("loan", "approve"),
+    CLIENT_PAYMENTS("savingsaccount", "deposit");
 
     private String entity;
     private String action;

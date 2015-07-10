@@ -35,24 +35,27 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 
 @Component
-public class LoanApprovalToGuarantorsEventListner implements ApplicationListener<LoanApprovalToGuarantorsEvent> {
+public class LoanApprovalToGuarantorsEventListner implements
+		ApplicationListener<LoanApprovalToGuarantorsEvent> {
 
 	@Value("${message.template.loanApproval}")
 	private String messageTemplate;
-	
-	private static final Logger logger = LoggerFactory.getLogger(LoanApprovalToGuarantorsEventListner.class);
-	
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(LoanApprovalToGuarantorsEventListner.class);
+
 	private final SMSBridgeConfigRepository smsBridgeConfigRepository;
 	private final EventSourceRepository eventSourceRepository;
 	private final RestAdapterProvider restAdapterProvider;
 	private final SMSGatewayProvider smsGatewayProvider;
 	private final JsonParser jsonParser;
-	
+
 	@Autowired
-	public LoanApprovalToGuarantorsEventListner(SMSBridgeConfigRepository smsBridgeConfigRepository,
-												EventSourceRepository eventSourceRepository,
-												RestAdapterProvider restAdapterProvider,
-												SMSGatewayProvider smsGatewayProvider, JsonParser jsonParser) {
+	public LoanApprovalToGuarantorsEventListner(
+			SMSBridgeConfigRepository smsBridgeConfigRepository,
+			EventSourceRepository eventSourceRepository,
+			RestAdapterProvider restAdapterProvider,
+			SMSGatewayProvider smsGatewayProvider, JsonParser jsonParser) {
 		super();
 		this.smsBridgeConfigRepository = smsBridgeConfigRepository;
 		this.eventSourceRepository = eventSourceRepository;
@@ -63,85 +66,98 @@ public class LoanApprovalToGuarantorsEventListner implements ApplicationListener
 
 	@Transactional
 	@Override
-	public void onApplicationEvent(LoanApprovalToGuarantorsEvent loanApprovalToGuarantorsEvent) {
-		
+	public void onApplicationEvent(
+			LoanApprovalToGuarantorsEvent loanApprovalToGuarantorsEvent) {
+
 		logger.info("Loan approval to guarantors event received, trying to process ...");
-		
-		final EventSource eventSource = this.eventSourceRepository.findOne(loanApprovalToGuarantorsEvent.getEventId());
-		
-		final SMSBridgeConfig smsBridgeConfig = this.smsBridgeConfigRepository.findByTenantId(eventSource.getTenantId());
+
+		final EventSource eventSource = this.eventSourceRepository
+				.findOne(loanApprovalToGuarantorsEvent.getEventId());
+
+		final SMSBridgeConfig smsBridgeConfig = this.smsBridgeConfigRepository
+				.findByTenantId(eventSource.getTenantId());
 		if (smsBridgeConfig == null) {
 			logger.error("Unknown tenant " + eventSource.getTenantId() + "!");
 			return;
 		}
-		
-		LoanApprovalToGuarantorsResponse loanApprovalToGuarantorsResponse = this.jsonParser.parse(eventSource.getPayload(), LoanApprovalToGuarantorsResponse.class);
-		
+
+		LoanApprovalToGuarantorsResponse loanApprovalToGuarantorsResponse = this.jsonParser
+				.parse(eventSource.getPayload(),
+						LoanApprovalToGuarantorsResponse.class);
+
 		final long clientId = loanApprovalToGuarantorsResponse.getClientId();
-		
+
 		final long loanId = loanApprovalToGuarantorsResponse.getLoanId();
-		
-		final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
-		
-		try {
-			final String authToken = AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build();
-			
-			final MifosLoanApprovalService loanService = restAdapter.create(MifosLoanApprovalService.class);
-			final Loan loan = loanService.findLoan(authToken, smsBridgeConfig.getTenantId(), loanId);
-			
-			final MifosClientService clientService = restAdapter.create(MifosClientService.class);
-			final Client client = clientService.findClient(authToken, smsBridgeConfig.getTenantId(), clientId);
-			
-			loan.guarantorsData(loan.getGuarantors());
-			
-			List<Long> guarantorIdList = new ArrayList<Long>();
-			guarantorIdList = loan.getGuarantorsId();
-			
-			for(int i=0; i<guarantorIdList.size(); i++){
-				
-				System.out.println(guarantorIdList.get(i));
-				
-				if (guarantorIdList.get(i) != null) {
-					
+
+		final RestAdapter restAdapter = this.restAdapterProvider
+				.get(smsBridgeConfig);
+
+		final String authToken = AuthorizationTokenBuilder.token(
+				smsBridgeConfig.getMifosToken()).build();
+
+		final MifosLoanApprovalService loanService = restAdapter
+				.create(MifosLoanApprovalService.class);
+		final Loan loan = loanService.findLoan(authToken,
+				smsBridgeConfig.getTenantId(), loanId);
+
+		final MifosClientService clientService = restAdapter
+				.create(MifosClientService.class);
+		final Client client = clientService.findClient(authToken,
+				smsBridgeConfig.getTenantId(), clientId);
+
+		loan.guarantorsData(loan.getGuarantors());
+
+		List<Long> guarantorIdList = new ArrayList<Long>();
+		guarantorIdList = loan.getGuarantorsId();
+
+		for (int i = 0; i < guarantorIdList.size(); i++) {
+
+			if (guarantorIdList.get(i) != null) {
+
+				try {
+
 					Long guarantorId = guarantorIdList.get(i);
-					final Client guarantor = clientService.findClient(authToken, smsBridgeConfig.getTenantId(), guarantorId);
-					
+					final Client guarantor = clientService.findClient(
+							authToken, smsBridgeConfig.getTenantId(),
+							guarantorId);
+
 					Double amount = null;
 					if (loan.getAmount() != null) {
 						amount = loan.getAmount().get(i);
 					}
-					
+
 					final String mobileNo = guarantor.getMobileNo();
 					if (mobileNo != null) {
 						logger.info("Mobile number found, sending message!");
-						
+
 						final VelocityContext velocityContext = new VelocityContext();
 						velocityContext.put("guarantorName", guarantor.getDisplayName());
 						velocityContext.put("lonee", client.getDisplayName());
 						velocityContext.put("amountCommited", amount);
 						velocityContext.put("branch", client.getOfficeName());
-						
+
 						final StringWriter stringWriter = new StringWriter();
 						Velocity.evaluate(velocityContext, stringWriter, "LoanApprovalToGuarantorsMessage", this.messageTemplate);
-						
+
 						final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
 						smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
 					}
+
+					eventSource.setProcessed(Boolean.TRUE);
+					logger.info("Loan approval to guarantors event processed!");
+				} catch (RetrofitError ret) {
+					if (ret.getResponse().getStatus() == 404) {
+						logger.info("Loan not found!");
+					}
+					eventSource.setProcessed(Boolean.FALSE);
+					eventSource.setErrorMessage(ret.getMessage());
+				} catch (SMSGatewayException sgex) {
+					eventSource.setProcessed(Boolean.FALSE);
+					eventSource.setErrorMessage(sgex.getMessage());
 				}
+				eventSource.setLastModifiedOn(new Date());
+				this.eventSourceRepository.save(eventSource);
 			}
-			eventSource.setProcessed(Boolean.TRUE);
-			logger.info("Loan approval to guarantors event processed!");
-		} catch(RetrofitError ret) {
-			if (ret.getResponse().getStatus() == 404) {
-				logger.info("Loan not found!");
-			}
-			eventSource.setProcessed(Boolean.FALSE);
-			eventSource.setErrorMessage(ret.getMessage());
-		} catch (SMSGatewayException sgex) {
-			eventSource.setProcessed(Boolean.FALSE);
-			eventSource.setErrorMessage(sgex.getMessage());
 		}
-		eventSource.setLastModifiedOn(new Date());
-		this.eventSourceRepository.save(eventSource);
 	}
 }

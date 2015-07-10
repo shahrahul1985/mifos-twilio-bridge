@@ -21,6 +21,7 @@ public class CreateClientResponse {
     private long clientId;
     private long resourceId;
     private long savingsId;
+    
 
     public CreateClientResponse() {
         super();

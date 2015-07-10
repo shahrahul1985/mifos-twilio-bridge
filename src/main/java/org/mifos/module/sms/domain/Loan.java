@@ -99,7 +99,6 @@ public class Loan {
 			
 			if(guarantor.get("guarantorFundingDetails").getAsJsonArray() != null) {
 				JsonArray guarantorsCommitedAmount  = guarantor.get("guarantorFundingDetails").getAsJsonArray();
-				System.out.println("test " + guarantorsCommitedAmount.size());
 				
 				for(int j=0; j<guarantorsCommitedAmount.size(); j++) {
 					if (guarantorsCommitedAmount.get(j) != null ) {

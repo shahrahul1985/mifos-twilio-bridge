@@ -3,9 +3,6 @@ package org.mifos.module.sms.domain;
 import java.util.ArrayList;
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
-import java.util.List;
-
-import com.google.gson.JsonArray;
 
 public class SavingsAccount {
 
