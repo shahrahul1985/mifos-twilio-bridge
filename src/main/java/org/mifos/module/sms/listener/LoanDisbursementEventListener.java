@@ -74,14 +74,11 @@ public class LoanDisbursementEventListener implements ApplicationListener<LoanDi
 		LoanDisbursementResponse loanDisbursementResponse = this.jsonParser.parse(eventSource.getPayload(), LoanDisbursementResponse.class);
 		
 		final long clientId = loanDisbursementResponse.getClientId();
-		//final long loanId = loanDisbursementResponse.getLoanId();
 		
 		final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
 		
 		try{
 			final String authToken = AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build();
-			/*final MifosLoanService loanService = restAdapter.create(MifosLoanService.class);
-			final Loan loan = loanService.findLoan(authToken, smsBridgeConfig.getTenantId(), loanId);*/
 			
 			final MifosClientService clientService = restAdapter.create(MifosClientService.class);
 			final Client client = clientService.findClient(authToken, smsBridgeConfig.getTenantId(), clientId);
@@ -99,6 +96,7 @@ public class LoanDisbursementEventListener implements ApplicationListener<LoanDi
 				
 				final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
 				smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+				logger.info("Message is: "+ stringWriter);
 			}
 			eventSource.setProcessed(Boolean.TRUE);
 			logger.info("Loan disbursement event processed!");

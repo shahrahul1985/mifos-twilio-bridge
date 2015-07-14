@@ -94,7 +94,11 @@ public class ClientPaymentsEventListner implements
 		String receiptNo = null;
 		String report_name = "Client Payments";
 		if (clientPaymentsResponse.getChanges() != null) {
-			receiptNo = clientPaymentsResponse.getChanges().get("receiptNumber").toString();
+			if (clientPaymentsResponse.getChanges().get("receiptNumber") != null) {
+				receiptNo = clientPaymentsResponse.getChanges().get("receiptNumber").toString();
+			}else {
+				logger.info("Receipt Number can not be null...");
+			}
 		}
 
 		final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
@@ -107,11 +111,11 @@ public class ClientPaymentsEventListner implements
 		paymentsData.getDataValues(paymentsData.getData());
 		
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		List<EventSourceDetail> eventSourceDetailsList = eventSourceDetailsRepository.findByEntityIdandMobileNumberandProcessed(receiptNo, paymentsData.getMobileNo(), true);
+		List<EventSourceDetail> eventSourceDetailsList = eventSourceDetailsRepository.findByEntityIdandMobileNumberandProcessed(receiptNo, paymentsData.getMobileNo(), Boolean.TRUE);
 		if(eventSourceDetailsList.size() == 0) {
 
 			EventSourceDetail eventSourceDetails = new EventSourceDetail();
@@ -146,6 +150,7 @@ public class ClientPaymentsEventListner implements
 
 						final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
 						smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+						logger.info("Message is: "+ stringWriter);
 					}
 
 					eventSource.setProcessed(Boolean.TRUE);

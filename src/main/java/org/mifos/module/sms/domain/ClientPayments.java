@@ -79,6 +79,10 @@ public class ClientPayments {
 				}else if (j == 2) {
 					setClientName(rowData.get(j).getAsString());
 				}else if (j == 3) {
+					Boolean mobileNum = rowData.get(j).isJsonNull();
+					if (mobileNum) {
+						System.out.println("Mobile Number can not be null...");
+					}
 					setMobileNo(rowData.get(j).getAsString());
 				}else if (j == 6) {
 					setTotalAmount(rowData.get(j).getAsDouble());

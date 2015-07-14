@@ -107,6 +107,7 @@ public class CreateClientEventListener implements ApplicationListener<CreateClie
 
                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
                 smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                logger.info("Message is: "+ stringWriter);
             }
             eventSource.setProcessed(Boolean.TRUE);
             logger.info("Create client event processed!");
