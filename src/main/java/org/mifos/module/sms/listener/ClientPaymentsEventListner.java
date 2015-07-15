@@ -100,7 +100,6 @@ public class ClientPaymentsEventListner implements
 				logger.info("Receipt Number can not be null...");
 			}
 		}
-
 		final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
 		
 		final String authToken = AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build();
@@ -110,70 +109,70 @@ public class ClientPaymentsEventListner implements
 		ClientPayments paymentsData = clientSavingsPaymentsService.findClientPayments(authToken,smsBridgeConfig.getTenantId(), report_name, receiptNo, clientId);
 		paymentsData.getDataValues(paymentsData.getData());
 		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		List<EventSourceDetail> eventSourceDetailsList = eventSourceDetailsRepository.findByEntityIdandMobileNumberandProcessed(receiptNo, paymentsData.getMobileNo(), Boolean.TRUE);
-		if(eventSourceDetailsList.size() == 0) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			List<EventSourceDetail> eventSourceDetailsList = eventSourceDetailsRepository.findByEntityIdandMobileNumberandProcessed(receiptNo, paymentsData.getMobileNo(), Boolean.TRUE);
+			if(eventSourceDetailsList.size() == 0) {
 
-			EventSourceDetail eventSourceDetails = new EventSourceDetail();
+				EventSourceDetail eventSourceDetails = new EventSourceDetail();
 
-				try {
+					try {
 
-					eventSourceDetails.setEventId(eventSource.getId());
-					eventSourceDetails.setEntity(eventSource.getEntity());
-					eventSourceDetails.setAction(eventSource.getAction());
-					eventSourceDetails.setPayload(eventSource.getPayload());
-					eventSourceDetails.setTenantId(eventSource.getTenantId());
-					eventSourceDetails.setEntityId(receiptNo);
-					eventSourceDetails.setEntityName(paymentsData.getClientName());
-					eventSourceDetails.setEntityMobileNo(paymentsData.getMobileNo());
-					eventSourceDetails.setEntitydescription("clientId:"+ clientId + " " + "receiptNo:"+ paymentsData.getReceiptNo());
-					final Date now = new Date();
-					eventSourceDetails.setCreatedOn(now);
+						eventSourceDetails.setEventId(eventSource.getId());
+						eventSourceDetails.setEntity(eventSource.getEntity());
+						eventSourceDetails.setAction(eventSource.getAction());
+						eventSourceDetails.setPayload(eventSource.getPayload());
+						eventSourceDetails.setTenantId(eventSource.getTenantId());
+						eventSourceDetails.setEntityId(receiptNo);
+						eventSourceDetails.setEntityName(paymentsData.getClientName());
+						eventSourceDetails.setEntityMobileNo(paymentsData.getMobileNo());
+						eventSourceDetails.setEntitydescription("clientId:"+ clientId + " " + "receiptNo:"+ paymentsData.getReceiptNo());
+						final Date now = new Date();
+						eventSourceDetails.setCreatedOn(now);
 
 
-					final String mobileNo = paymentsData.getMobileNo();
-					if (mobileNo != null) {
-						logger.info("Mobile number found, sending message!");
+						final String mobileNo = paymentsData.getMobileNo();
+						if (mobileNo != null) {
+							logger.info("Mobile number found, sending message!");
 
-						final VelocityContext velocityContext = new VelocityContext();
-						velocityContext.put("clientName",paymentsData.getClientName());
-						velocityContext.put("totalAmount",paymentsData.getTotalAmount());
-						velocityContext.put("branch",paymentsData.getOfficeName());
-						velocityContext.put("billNumber",paymentsData.getReceiptNo());
+							final VelocityContext velocityContext = new VelocityContext();
+							velocityContext.put("clientName",paymentsData.getClientName());
+							velocityContext.put("totalAmount",paymentsData.getTotalAmount());
+							velocityContext.put("branch",paymentsData.getOfficeName());
+							velocityContext.put("billNumber",paymentsData.getReceiptNo());
 
-						final StringWriter stringWriter = new StringWriter();
-						Velocity.evaluate(velocityContext, stringWriter, "LoanApprovalToGuarantorsMessage", this.messageTemplate);
+							final StringWriter stringWriter = new StringWriter();
+							Velocity.evaluate(velocityContext, stringWriter, "LoanApprovalToGuarantorsMessage", this.messageTemplate);
 
-						final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-						smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-						logger.info("Message is: "+ stringWriter);
+							final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
+							smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+							logger.info("Message is: "+ stringWriter);
+						}
+
+						eventSource.setProcessed(Boolean.TRUE);
+						eventSourceDetails.setProcessed(Boolean.TRUE);
+						logger.info("Client payments event processed!");
+					} catch (RetrofitError ret) {
+						if (ret.getResponse().getStatus() == 404) {
+							logger.info("Client payments not found!");
+						}
+						eventSource.setProcessed(Boolean.FALSE);
+						eventSource.setErrorMessage(ret.getMessage());
+						eventSourceDetails.setProcessed(Boolean.FALSE);
+						eventSourceDetails.setErrorMessage(ret.getMessage());
+					} catch (SMSGatewayException sgex) {
+						eventSource.setProcessed(Boolean.FALSE);
+						eventSource.setErrorMessage(sgex.getMessage());
+						eventSourceDetails.setProcessed(Boolean.FALSE);
+						eventSourceDetails.setErrorMessage(sgex.getMessage());
 					}
-
-					eventSource.setProcessed(Boolean.TRUE);
-					eventSourceDetails.setProcessed(Boolean.TRUE);
-					logger.info("Client payments event processed!");
-				} catch (RetrofitError ret) {
-					if (ret.getResponse().getStatus() == 404) {
-						logger.info("Client payments not found!");
-					}
-					eventSource.setProcessed(Boolean.FALSE);
-					eventSource.setErrorMessage(ret.getMessage());
-					eventSourceDetails.setProcessed(Boolean.FALSE);
-					eventSourceDetails.setErrorMessage(ret.getMessage());
-				} catch (SMSGatewayException sgex) {
-					eventSource.setProcessed(Boolean.FALSE);
-					eventSource.setErrorMessage(sgex.getMessage());
-					eventSourceDetails.setProcessed(Boolean.FALSE);
-					eventSourceDetails.setErrorMessage(sgex.getMessage());
-				}
-				eventSource.setLastModifiedOn(new Date());
-				eventSourceDetails.setLastModifiedOn(new Date());
-				this.eventSourceRepository.save(eventSource);
-				this.eventSourceDetailsRepository.save(eventSourceDetails);
-		}
+					eventSource.setLastModifiedOn(new Date());
+					eventSourceDetails.setLastModifiedOn(new Date());
+					this.eventSourceRepository.save(eventSource);
+					this.eventSourceDetailsRepository.save(eventSourceDetails);
+			}
 	}
 }
