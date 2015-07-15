@@ -109,6 +109,7 @@ public class LoanRepaymentEventListener implements ApplicationListener<LoanRepay
 
                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
                 smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                logger.info("Message is: "+ stringWriter);
             }
             eventSource.setProcessed(Boolean.TRUE);
             logger.info("Loan repayment event processed!");

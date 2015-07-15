@@ -105,7 +105,11 @@ public class LoanApprovalToGuarantorsEventListner implements
 		final Client client = clientService.findClient(authToken,
 				smsBridgeConfig.getTenantId(), clientId);
 
-		loan.guarantorsData(loan.getGuarantors());
+		if (loan.getGuarantors() != null) {
+			loan.guarantorsData(loan.getGuarantors());
+		}else {
+			logger.info("You need to have at leat one guarantor to send message...");
+		}
 
 		List<Long> guarantorIdList = new ArrayList<Long>();
 		guarantorIdList = loan.getGuarantorsId();
@@ -141,6 +145,7 @@ public class LoanApprovalToGuarantorsEventListner implements
 
 						final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
 						smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+						logger.info("Message is: "+ stringWriter);
 					}
 
 					eventSource.setProcessed(Boolean.TRUE);
