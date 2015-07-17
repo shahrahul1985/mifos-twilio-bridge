@@ -1,179 +1,173 @@
 package org.mifos.module.sms.domain;
 
+import java.util.ArrayList;
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "event_sourcing_details")
 public class EventSourceDetail {
 
-	@Id
+    @Id
     @GeneratedValue
     private Long id;
- 
- @Column(name = "event_id")
-  private Long eventId;
- 
- @Column(name = "tenant_id")
-    private String tenantId;
- 
- @Column(name="entity_id")
- private String entityId;
- 
- @Column(name="entity_description")
- private String entitydescription;
- 
- 
 
- @Column(name = "entity")
+    @Column(name = "event_id")
+    private Long eventId;
+
+    @Column(name = "tenant_id")
+    private String tenantId;
+
+    @Column(name = "entity_id")
+    private String entityId;
+
+    @Column(name = "entity_description")
+    private String entitydescription;
+
+    public String getEntityId() {
+        return this.entityId;
+    }
+
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
+    }
+
+    public String getEntitydescription() {
+        return this.entitydescription;
+    }
+
+    public void setEntitydescription(String entitydescription) {
+        this.entitydescription = entitydescription;
+    }
+
+    @Column(name = "entity")
     private String entity;
- 
- @Column(name = "entity_name")
+
+    @Column(name = "entity_name")
     private String entityName;
- 
- @Column(name = "entity_mobile_no")
+
+    @Column(name = "entity_mobile_no")
     private String entityMobileNo;
- 
- @Column(name = "action")
+
+    @Column(name = "action")
     private String action;
- 
- @Column(name = "payload")
+
+    @Column(name = "payload")
     private String payload;
- 
- @Column(name = "processed")
-    private Boolean processed; 
- 
- @Column(name = "error_message")
+
+    @Column(name = "processed")
+    private Boolean processed;
+
+    @Column(name = "error_message")
     private String errorMessage;
- 
- @Column(name = "created_on")
+
+    @Column(name = "created_on")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdOn;
- 
- @Column(name = "last_modified_on")
+
+    @Column(name = "last_modified_on")
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastModifiedOn;
 
- public EventSourceDetail() {
-  super();
- }
+    public EventSourceDetail() {
+        super();
+    }
 
- public Long getId() {
-  return id;
- }
+    public Long getId() {
+        return id;
+    }
 
- public void setId(Long id) {
-  this.id = id;
- }
- 
- public String getEntityId() {
-	  return this.entityId;
-	 }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
- public void setEntityId(String entityId) {
-	  this.entityId = entityId;
-	 }
+    public Long getEventId() {
+        return eventId;
+    }
 
- public String getEntitydescription() {
-	  return this.entitydescription;
-	 }
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
+    }
 
- public void setEntitydescription(String entitydescription) {
-	 this.entitydescription = entitydescription;
- }
+    public String getTenantId() {
+        return tenantId;
+    }
 
- public Long getEventId() {
-  return eventId;
- }
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
 
- public void setEventId(Long eventId) {
-  this.eventId = eventId;
- }
+    public String getEntity() {
+        return entity;
+    }
 
- public String getTenantId() {
-  return tenantId;
- }
+    public void setEntity(String entity) {
+        this.entity = entity;
+    }
 
- public void setTenantId(String tenantId) {
-  this.tenantId = tenantId;
- }
+    public String getEntityName() {
+        return entityName;
+    }
 
- public String getEntity() {
-  return entity;
- }
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
 
- public void setEntity(String entity) {
-  this.entity = entity;
- }
+    public String getEntity_Mobile_No() {
+        return entityMobileNo;
+    }
 
- public String getEntityName() {
-  return entityName;
- }
+    public void setEntity_Mobile_No(String entity_Mobile_No) {
+        this.entityMobileNo = entity_Mobile_No;
+    }
 
- public void setEntityName(String entityName) {
-  this.entityName = entityName;
- }
+    public String getAction() {
+        return action;
+    }
 
- public String getEntityMobileNo() {
-  return entityMobileNo;
- }
+    public void setAction(String action) {
+        this.action = action;
+    }
 
- public void setEntityMobileNo(String entityMobileNo) {
-  this.entityMobileNo = entityMobileNo;
- }
+    public String getPayload() {
+        return payload;
+    }
 
- public String getAction() {
-  return action;
- }
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
 
- public void setAction(String action) {
-  this.action = action;
- }
+    public Boolean getProcessed() {
+        return processed;
+    }
 
- public String getPayload() {
-  return payload;
- }
+    public void setProcessed(Boolean processed) {
+        this.processed = processed;
+    }
 
- public void setPayload(String payload) {
-  this.payload = payload;
- }
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
- public Boolean getProcessed() {
-  return processed;
- }
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 
- public void setProcessed(Boolean processed) {
-  this.processed = processed;
- }
+    public Date getCreatedOn() {
+        return createdOn;
+    }
 
- public String getErrorMessage() {
-  return errorMessage;
- }
+    public void setCreatedOn(Date createdOn) {
+        this.createdOn = createdOn;
+    }
 
- public void setErrorMessage(String errorMessage) {
-  this.errorMessage = errorMessage;
- }
+    public Date getLastModifiedOn() {
+        return lastModifiedOn;
+    }
 
- public Date getCreatedOn() {
-  return createdOn;
- }
+    public void setLastModifiedOn(Date lastModifiedOn) {
+        this.lastModifiedOn = lastModifiedOn;
+    }
 
- public void setCreatedOn(Date createdOn) {
-  this.createdOn = createdOn;
- }
-
- public Date getLastModifiedOn() {
-  return lastModifiedOn;
- }
-
- public void setLastModifiedOn(Date lastModifiedOn) {
-  this.lastModifiedOn = lastModifiedOn;
- }
 }

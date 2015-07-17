@@ -1,5 +1,4 @@
 package org.mifos.module.sms.provider;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -27,11 +26,8 @@ public class AfricasTalkingGateway implements SMSGateway
 	private static final String AIRTIMEURLString  = "https://api.africastalking.com/version1/airtime";
 	private static final int HTTP_CODE_OK         = 200;
 	private static final int HTTP_CODE_CREATED    = 201;
-	
-	
 	public AfricasTalkingGateway() {
 	}
-	
 	//Change debug flag to true to view raw server response
 	private static final boolean DEBUG = false;
 	
@@ -352,8 +348,6 @@ public class AfricasTalkingGateway implements SMSGateway
     	}
     	catch (Exception e) {throw e;}
     }
-
-
 	@Override
 	public void sendMessage(SMSBridgeConfig smsBridgeConfig, String mobileNo,
 			String message) throws SMSGatewayException {

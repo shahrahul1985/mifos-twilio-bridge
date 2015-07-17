@@ -153,7 +153,7 @@ public class ClientPaymentsEventListener implements
 					eventSourceDetails.setEntityId(receiptNo);
 					eventSourceDetails.setEntityName(paymentsData
 							.getClientName());
-					eventSourceDetails.setEntityMobileNo(paymentsData
+					eventSourceDetails.setEntity_Mobile_No(paymentsData
 							.getMobileNo());
 					eventSourceDetails.setEntitydescription("clientId:"
 							+ clientId + " " + "receiptNo:"

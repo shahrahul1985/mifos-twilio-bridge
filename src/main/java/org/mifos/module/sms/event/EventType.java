@@ -25,7 +25,11 @@ public enum EventType {
     LOAN_DISBURSEMENT("loan", "disburse"),
     SEND_SMS("sms", "send"),
     LOAN_APPROVAL_TO_GUARANTORS("loan", "approve"),
-    CLIENT_PAYMENTS("savingsaccount", "deposit");
+    CLIENT_PAYMENTS("savingsaccount", "deposit"),
+    LOAN_REPAYMENT_SMS_REMINDE("SCHEDULE","EXECUTEJOB"),
+    LOAN_FIRST_AND_SECOND_OVERDUE_REPAYMENT_REMINDER("FIRSTOVERDUE","SECONDOVERDUE"),
+    LOAN_THIRD_AND_FOURTH_OVERDUE_REPAYMENT_REMINDER("THIRDOVERDUE","FOURTHOVERDUE"),
+    BULK_SMS_SEND("SCHEDULER","EXECUTEJOB");
 
     private String entity;
     private String action;

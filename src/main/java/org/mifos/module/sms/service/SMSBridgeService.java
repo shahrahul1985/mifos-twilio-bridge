@@ -8,7 +8,12 @@ import org.mifos.module.sms.event.EventType;
 import org.mifos.module.sms.event.LoanApprovalToGuarantorsEvent;
 import org.mifos.module.sms.event.LoanDisbursementEvent;
 import org.mifos.module.sms.event.SavingsAccountCloseEvent;
+import org.mifos.module.sms.event.BulkSmsEvent;
+import org.mifos.module.sms.event.LoanFirstAndSecondOverdueRepaymentReminderEvent;
+import org.mifos.module.sms.event.LoanRepaymentSmsReminderEvent;
+import org.mifos.module.sms.event.LoanThirdAndFourthOverdueRepaymentReminderEvent;
 import org.mifos.module.sms.event.SendSMSEvent;
+import org.mifos.module.sms.repository.EventSourceDetailRepository;
 import org.mifos.module.sms.repository.EventSourceRepository;
 import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
 import org.slf4j.Logger;
@@ -30,13 +35,16 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
     private final SMSBridgeConfigRepository smsBridgeConfigRepository;
     private final EventSourceRepository eventSourceRepository;
     private ApplicationEventPublisher eventPublisher;
+    private final EventSourceDetailRepository eventSourceDetailRepository;
 
     @Autowired
     public SMSBridgeService(final SMSBridgeConfigRepository smsBridgeConfigRepository,
-                            final EventSourceRepository eventSourceRepository) {
+                            final EventSourceRepository eventSourceRepository,
+                            final EventSourceDetailRepository eventSourceDetailRepository) {
         super();
         this.smsBridgeConfigRepository = smsBridgeConfigRepository;
         this.eventSourceRepository = eventSourceRepository;
+        this.eventSourceDetailRepository= eventSourceDetailRepository;
     }
 
     public void sendShortMessage(final String entity, final String action, final String tenantId, final String payload) {
@@ -110,6 +118,18 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
             case CLIENT_PAYMENTS:
                 this.eventPublisher.publishEvent(new ClientPaymentsEvent(this, eventId));
                 break;    
+            case LOAN_FIRST_AND_SECOND_OVERDUE_REPAYMENT_REMINDER:
+            	this.eventPublisher.publishEvent(new LoanFirstAndSecondOverdueRepaymentReminderEvent(this,eventId));
+            	break; 
+            case LOAN_THIRD_AND_FOURTH_OVERDUE_REPAYMENT_REMINDER:
+            	this.eventPublisher.publishEvent(new LoanThirdAndFourthOverdueRepaymentReminderEvent(this,eventId));
+            	break;             	
+            case LOAN_REPAYMENT_SMS_REMINDE:
+            	this.eventPublisher.publishEvent(new LoanRepaymentSmsReminderEvent(this,eventId));
+                break;
+            case BULK_SMS_SEND:    
+                this.eventPublisher.publishEvent(new BulkSmsEvent(this,eventId));
+                break;
         }
     }
 
@@ -126,7 +146,13 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
         final Date now = new Date();
         eventSource.setCreatedOn(now);
         eventSource.setLastModifiedOn(now);
-
-        return this.eventSourceRepository.save(eventSource).getId();
+         return this.eventSourceRepository.save(eventSource).getId();
+         
     }
+
+  
+    
+    
+    
+    
 }
