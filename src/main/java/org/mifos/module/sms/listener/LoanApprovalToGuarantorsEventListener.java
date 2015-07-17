@@ -35,14 +35,14 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 
 @Component
-public class LoanApprovalToGuarantorsEventListner implements
+public class LoanApprovalToGuarantorsEventListener implements
 		ApplicationListener<LoanApprovalToGuarantorsEvent> {
 
 	@Value("${message.template.loanApproval}")
 	private String messageTemplate;
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(LoanApprovalToGuarantorsEventListner.class);
+			.getLogger(LoanApprovalToGuarantorsEventListener.class);
 
 	private final SMSBridgeConfigRepository smsBridgeConfigRepository;
 	private final EventSourceRepository eventSourceRepository;
@@ -51,7 +51,7 @@ public class LoanApprovalToGuarantorsEventListner implements
 	private final JsonParser jsonParser;
 
 	@Autowired
-	public LoanApprovalToGuarantorsEventListner(
+	public LoanApprovalToGuarantorsEventListener(
 			SMSBridgeConfigRepository smsBridgeConfigRepository,
 			EventSourceRepository eventSourceRepository,
 			RestAdapterProvider restAdapterProvider,
