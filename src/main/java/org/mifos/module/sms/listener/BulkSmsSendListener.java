@@ -223,27 +223,24 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                     if (reportName.equalsIgnoreCase("Loan First Overdue Repayment Reminder")) {
                         final StringWriter stringWriter = new StringWriter();
                         if (detail.size() != 0) {
-                            if (sendSmsReportName.equalsIgnoreCase("Loan Repayment Reminders")) {
-                                if (diffInDays >=5 ) {
-                                    velocityContext.put("branch", clientBranchList.get(i));
-                                    velocityContext.put("month", loanOverdueMonthList.get(i));
-                                    velocityContext.put("overdueamount", loanOverdueDueAmountList.get(i));
-                                    Velocity.evaluate(velocityContext, stringWriter, "loanFirstAndSecondOverdueRepaymentReminder",
-                                            this.messageTemplate);
-                                    final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                                    smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                                    eventSource.setProcessed(Boolean.TRUE);
-                                    eventSourceDetail.setProcessed(Boolean.TRUE);
-                                    this.eventSourceDetailRepository.save(eventSourceDetail);
-                                    logger.info("Loan First Overdue Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i)
-                                            + " \n" + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n"
-                                            + "productName: " + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString()
-                                            + "event processed!");
-                                    totalMessageSent = totalMessageSent + 1;
-                                }
+                            if (diffInDays >= 5) {
+                                velocityContext.put("branch", clientBranchList.get(i));
+                                velocityContext.put("month", loanOverdueMonthList.get(i));
+                                velocityContext.put("overdueamount", loanOverdueDueAmountList.get(i));
+                                Velocity.evaluate(velocityContext, stringWriter, "loanFirstAndSecondOverdueRepaymentReminder",
+                                        this.messageTemplate);
+                                final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
+                                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                                eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                                this.eventSourceDetailRepository.save(eventSourceDetail);
+                                logger.info("Loan First Overdue Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i)
+                                        + " \n" + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n"
+                                        + "productName: " + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString()
+                                        + "event processed!");
+                                totalMessageSent = totalMessageSent + 1;
                             }
-                        }
-                       else if (detail.size() == 0) {
+                        } else if (detail.size() == 0) {
                             velocityContext.put("branch", clientBranchList.get(i));
                             velocityContext.put("month", loanOverdueMonthList.get(i));
                             velocityContext.put("overdueamount", loanOverdueDueAmountList.get(i));
@@ -261,8 +258,44 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                         }
 
                     }
+                    if (reportName.equalsIgnoreCase("Loan Repayment Reminders")) {
+                        if (detail.size() != 0) {
+                            if (diffInDays >= 5) {
+                                final StringWriter stringWriter = new StringWriter();
+                                velocityContext.put("branch", clientBranchList.get(i));
+                                velocityContext.put("duedate", LoanDueDateList.get(i));
+                                Velocity.evaluate(velocityContext, stringWriter, "loanrepaymentsmsreminder", this.loanrepaymentsmsreminder);
+                                final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
+                                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                                eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setReportName(reportName);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                                this.eventSourceDetailRepository.save(eventSourceDetail);
+                                logger.info("Loan Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n"
+                                        + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
+                                        + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString() + "\nevent processed!");
+                                totalMessageSent = totalMessageSent + 1;
 
-                    if (detail.size() == 0 || diffInDays >= 31) {
+                            }
+                        } else if (detail.size() == 0) {
+                            final StringWriter stringWriter = new StringWriter();
+                            velocityContext.put("branch", clientBranchList.get(i));
+                            velocityContext.put("duedate", LoanDueDateList.get(i));
+                            Velocity.evaluate(velocityContext, stringWriter, "loanrepaymentsmsreminder", this.loanrepaymentsmsreminder);
+                            final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
+                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            eventSource.setProcessed(Boolean.TRUE);
+                            eventSourceDetail.setProcessed(Boolean.TRUE);
+                            this.eventSourceDetailRepository.save(eventSourceDetail);
+                            this.eventSourceDetailRepository.save(eventSourceDetail);
+                            logger.info("Loan Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n"
+                                    + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
+                                    + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString() + "\nevent processed!");
+                            totalMessageSent = totalMessageSent + 1;
+                        }
+                    }
+
+                    if (detail.size() == 0 || diffInDays + 1 >= 28) {
                         final StringWriter stringWriter = new StringWriter();
                         if (reportName.equalsIgnoreCase("Loan Second Overdue Repayment Reminder")) {
                             velocityContext.put("month", loanOverdueMonthList.get(i));
@@ -304,20 +337,6 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("Loan Fourth Overdue Repayment Reminder  to\n" + "guarantorsName: " + guarantorsNameList.get(i)
                                     + " \n" + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
-                                    + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString() + "\nevent processed!");
-                            totalMessageSent = totalMessageSent + 1;
-                        } else if (reportName.equalsIgnoreCase("Loan Repayment Reminders")) {
-                            velocityContext.put("branch", clientBranchList.get(i));
-                            velocityContext.put("duedate", LoanDueDateList.get(i));
-                            Velocity.evaluate(velocityContext, stringWriter, "loanrepaymentsmsreminder", this.loanrepaymentsmsreminder);
-                            final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setReportName(reportName);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
-                            this.eventSourceDetailRepository.save(eventSourceDetail);
-                            logger.info("Loan Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n" + "MobileNo: "
-                                    + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
                                     + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString() + "\nevent processed!");
                             totalMessageSent = totalMessageSent + 1;
                         } else if (reportName.equalsIgnoreCase("DefaultWarning - Clients")) {
@@ -390,6 +409,7 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                 e.printStackTrace();
             }
             eventSource.setLastModifiedOn(new Date());
+            eventSource.setProcessed(Boolean.TRUE);
             eventSourceDetail.setLastModifiedOn(new Date());
             this.eventSourceRepository.save(eventSource);
         }
