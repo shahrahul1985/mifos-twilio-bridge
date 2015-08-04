@@ -112,7 +112,7 @@ public class BulkSmsListener {
                 guarantorsMobileNumberList.add(mobileNo);
             }
             bulkSmsListenerDomain = new BulkSmsListenerDomain(clientNameList, guarantorsNameList, guarantorsBranchList,
-                    clientMobileNumberList, loanIdList, clientIdList, productShortNameList, guarantorsMobileNumberList, null);
+                    clientMobileNumberList, clientIdList,loanIdList, productShortNameList, guarantorsMobileNumberList, null);
         } else if (reportName.equalsIgnoreCase("DefaultWarning -  guarantors")) {
             for (final JsonObject ObjectDetails : reportGivenListData) {
                 JsonObject objectFromList = ObjectDetails.getAsJsonObject();
@@ -137,7 +137,7 @@ public class BulkSmsListener {
                 guarantorscomittedShareList.add(comittedShares);
             }
             bulkSmsListenerDomain = new BulkSmsListenerDomain(clientNameList, guarantorsNameList, guarantorsBranchList,
-                    clientMobileNumberList, loanIdList, clientIdList, productShortNameList, guarantorsMobileNumberList,
+                    clientMobileNumberList,loanIdList,clientIdList, productShortNameList, guarantorsMobileNumberList,
                     guarantorscomittedShareList, null);
         }
 
