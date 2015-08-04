@@ -86,7 +86,7 @@ public class BulkSmsListenerDomain {
     }
 
     public BulkSmsListenerDomain(ArrayList<String> clientNameList, ArrayList<String> guarantorsNameList,
-            ArrayList<String> guarantorsBranchList, ArrayList<String> clientMobileNumberList, ArrayList<String> loanIdList,
+            ArrayList<String> guarantorsBranchList, ArrayList<String> clientMobileNumberList,ArrayList<String> loanIdList,
             ArrayList<String> clientIdList, ArrayList<String> productShortNameList, ArrayList<String> guarantorsMobileNumberList,
             ArrayList<String> guarantorscomittedShareList, ArrayList<String> loanDueDateList) {
         super();
@@ -95,7 +95,7 @@ public class BulkSmsListenerDomain {
         this.guarantorsBranchList = guarantorsBranchList;
         this.clientMobileNumberList = clientMobileNumberList;
         this.loanIdList = loanIdList;
-        this.clientIdList = clientIdList;
+        this.clientIdList = clientIdList;        
         this.productShortNameList = productShortNameList;
         this.guarantorsMobileNumberList = guarantorsMobileNumberList;
         this.guarantorscomittedShareList = guarantorscomittedShareList;
