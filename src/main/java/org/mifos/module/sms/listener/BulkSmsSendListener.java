@@ -56,8 +56,8 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
     @Value("${message.template.messageForDefaultWarningTogurantor}")
     private String messageForDefaultWarningTogurantor;
 
-    @Value("${message.template.messageForDormancyWarningTogurantor}")
-    private String messageForDormancyWarningTogurantor;
+    @Value("${message.template.messageForDormancyWarningToclient}")
+    private String messageForDormancyWarningToclient;
 
     private static final Logger logger = LoggerFactory.getLogger(BulkSmsSendListener.class);
     private final SMSBridgeConfigRepository smsBridgeConfigRepository;
@@ -202,7 +202,7 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                         totalMessageUnsent = totalMessageUnsent + 1;
                     } else if (reportName.equalsIgnoreCase("DormancyWarning - Clients")) {
                         logger.info("DormancyWarning Sms To clients    to\n" + "clientName: " + clientNameList.get(i) + " \n"
-                                + "MobileNo: " + mobileNo + "\n" + "loanId: " + savingIdList.get(i) + "\n" + "productName: "
+                                + "MobileNo: " + mobileNo + "\n" + "savingsId: " + savingIdList.get(i) + "\n" + "productName: "
                                 + productShortNameList.get(i) + "\n event is not  processed!");
                         totalMessageUnsent = totalMessageUnsent + 1;
                     }
@@ -372,9 +372,10 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                                     + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString() + "\nevent processed!");
                             totalMessageSent = totalMessageSent + 1;
                         } else if (reportName.equalsIgnoreCase("DormancyWarning - Clients")) {
+                        	if (detail.size() == 0 || diffInDays + 1 >= 90) {
                             velocityContext.put("branch", clientBranchList.get(i));
-                            Velocity.evaluate(velocityContext, stringWriter, "messageForDormancyWarningTogurantor",
-                                    this.messageForDormancyWarningTogurantor);
+                            Velocity.evaluate(velocityContext, stringWriter, "messageForDormancyWarningToclient",
+                                    this.messageForDormancyWarningToclient);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
                             smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
                             eventSource.setProcessed(Boolean.TRUE);
@@ -386,6 +387,7 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                                     + mobileNo + "\n" + "SavingId: " + savingIdList.get(i) + "\n" + "productName: "
                                     + productShortNameList.get(i) + "\n" + "message: " + stringWriter.toString() + "\nevent processed!");
                             totalMessageSent = totalMessageSent + 1;
+                        	}
                         }
                     }
                 }

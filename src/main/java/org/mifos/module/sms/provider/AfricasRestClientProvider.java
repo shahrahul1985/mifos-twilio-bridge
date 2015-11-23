@@ -32,18 +32,18 @@ public class AfricasRestClientProvider implements SMSGateway {
     
             try {
             JSONArray results = gateway.sendMessage(mobileNo, message);
-            logger.debug("Loan Repayment Reminder Sms  to event processed!");
+            //logger.debug("Loan Repayment Reminder Sms  to event processed!");
                    for( int i = 0; i < results.length(); ++i ) {
                   JSONObject result = results.getJSONObject(i);
-                  System.out.print(result.getString("status") + ","); 
-                  System.out.print(result.getString("number") + ",");
-                  System.out.print(result.getString("messageId") + ",");
-                  System.out.println(result.getString("cost"));
+                  logger.info(result.getString("status") + ","); 
+                  logger.info(result.getString("number") + ",");
+                  logger.info(result.getString("messageId") + ",");
+                  logger.info(result.getString("cost"));
         }
        }
        
        catch (Exception e) {
-        System.out.println("Encountered an error while sending " + e.getMessage());
+    	   logger.info("Encountered an error while sending " + e.getMessage());
         }    
    }	
 }

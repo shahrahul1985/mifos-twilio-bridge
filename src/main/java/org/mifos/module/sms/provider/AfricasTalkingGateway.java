@@ -46,6 +46,7 @@ public class AfricasTalkingGateway implements SMSGateway
     	String tonew="+"+to_;
     	data.put("username", _username);
     	data.put("to", tonew);
+    	data.put("from", "CaritasNRB");
     	data.put("message", message_);
 	
     	return sendMessageImpro(to_, message_, data);
@@ -247,8 +248,7 @@ public class AfricasTalkingGateway implements SMSGateway
     //User data method
     public JSONObject getUserData() throws Exception
     {
-    	String requestUrl = USERDATAURLString + "?username="+_username;
-    	
+    	String requestUrl = USERDATAURLString + "?username="+_username;    	
     	String response   = sendGETRequest(requestUrl);
     	if(responseCode == HTTP_CODE_OK) {
     		JSONObject jsObject = new JSONObject(response);
@@ -352,10 +352,18 @@ public class AfricasTalkingGateway implements SMSGateway
 	public void sendMessage(SMSBridgeConfig smsBridgeConfig, String mobileNo,
 			String message) throws SMSGatewayException {
 		try {
-			AfricasTalkingGateway africasTalkingGateway=new AfricasTalkingGateway(smsBridgeConfig.getSmsProviderAccountId(),smsBridgeConfig.getSmsProviderToken());
+			AfricasTalkingGateway africasTalkingGateway=new AfricasTalkingGateway(smsBridgeConfig.getSmsProviderToken(),smsBridgeConfig.getSmsProviderAccountId());
 			if(mobileNo!=null){
 			logger.info("Sending message to "+mobileNo);
-			africasTalkingGateway.sendMessage(mobileNo,message);
+			JSONArray results=africasTalkingGateway.sendMessage(mobileNo,message);
+			System.out.println(results);
+			 for( int i = 0; i < results.length(); ++i ) {
+                 JSONObject result = results.getJSONObject(i);
+                 logger.info(result.getString("status") + ","); 
+                 logger.info(result.getString("number") + ",");
+                 logger.info(result.getString("messageId") + ",");
+                 logger.info(result.getString("cost"));
+        }
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

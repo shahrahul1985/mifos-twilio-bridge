@@ -12,7 +12,7 @@ public class ClientPayments {
 	private String receiptNo;
 	private String mobileNo;
 	private Double totalAmount;
-	private ArrayList<JsonObject> data = new ArrayList<>();
+	private ArrayList<JsonObject> data = new ArrayList<JsonObject>();
 	
 	public ClientPayments() {
 		super();

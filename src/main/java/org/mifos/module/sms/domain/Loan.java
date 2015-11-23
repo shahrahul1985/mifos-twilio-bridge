@@ -27,8 +27,8 @@ public class Loan {
     private long clientId;
     private String officeName;
     private ArrayList<JsonObject> guarantors;
-    private List<Long> guarantorsId = new ArrayList<>();
-    private List<Double> amount = new ArrayList<>();
+    private List<Long> guarantorsId = new ArrayList<Long>();
+    private List<Double> amount = new ArrayList<Double>();
 
 	public Loan() {
         super();

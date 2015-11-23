@@ -16,10 +16,13 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:mysql://localhost:3306/mifosplatform-sms
+    url: jdbc:mysql://localhost:3306/caritas_database
     username: root
     password: mysql
     driver-class-name: com.mysql.jdbc.Driver
+ 
+tenantIdentifier: default
+  
 
 # message templates
 message:
@@ -36,4 +39,10 @@ message:
     loanThirdAndFourthOverdueRepaymentReminder: Dear $gurantorname,loan for $name  where you are a guarantor is not being serviced.If the loan is not repaid,we will have to recover the balance from your committed shares$branch.
     messageForDefaultWarningToClient: Dear $name, Your Loan is in default . The Loan Balance of $overdueamount,will be recover from your committed shares $branch.
     messageForDefaultWarningTogurantor: Dear $gurantorname, loan for $name is in default. Your committed shares to this loan $commitedShare will be deducted from your shares to recover the loan balance $branch.
-    messageForDormancyWarningTogurantor: Dear $name, Your account will be moved to dormancy.Please make a payment to avoid this $branch.
+    unregisteredmobilenumbers: Your MobileNo is not registered please contact to your branch.    
+    messageForDormancyWarningToclient: Dear $name, Your account will be moved to dormancy.Please make a payment to avoid this $branch.
+    loanAndSavingsBalance:  Dear $name, you don't have Loan and Savings Account Thanks, $branch.
+    loanAndSavingsTransaction: Dear $name ,cannot make a Transaction Thanks $branch.
+    invalidText:  Dear $name,  for balance enquiry please,type Balance and for mini statement type Mini Thanks, $branch.
+    miniStatement: Dear $name,Your MiniStmt is $meassage Thanks, $branch.  
+    balance: Dear $name,Your $balancemessage Thanks, $branch.

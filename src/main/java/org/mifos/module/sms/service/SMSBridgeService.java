@@ -5,13 +5,11 @@ import org.mifos.module.sms.domain.SMSBridgeConfig;
 import org.mifos.module.sms.event.ClientPaymentsEvent;
 import org.mifos.module.sms.event.CreateClientEvent;
 import org.mifos.module.sms.event.EventType;
+import org.mifos.module.sms.event.IncomingSmsEvent;
 import org.mifos.module.sms.event.LoanApprovalToGuarantorsEvent;
 import org.mifos.module.sms.event.LoanDisbursementEvent;
 import org.mifos.module.sms.event.SavingsAccountCloseEvent;
 import org.mifos.module.sms.event.BulkSmsEvent;
-import org.mifos.module.sms.event.LoanFirstAndSecondOverdueRepaymentReminderEvent;
-import org.mifos.module.sms.event.LoanRepaymentSmsReminderEvent;
-import org.mifos.module.sms.event.LoanThirdAndFourthOverdueRepaymentReminderEvent;
 import org.mifos.module.sms.event.SendSMSEvent;
 import org.mifos.module.sms.repository.EventSourceDetailRepository;
 import org.mifos.module.sms.repository.EventSourceRepository;
@@ -59,7 +57,18 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
         final SMSBridgeConfig smsBridgeConfig = this.smsBridgeConfigRepository.findByTenantId(tenantId);
         return smsBridgeConfig;
     }
+    /**
+     * Method for sending message for incoming request
+     * @param smsBridgeConfig
+     * @return
+     */
+    public void sendMessageOnIncomingRequest (final String entity, final String action, final String tenantId, final String payload) {
+        final EventType eventType = EventType.get(entity, action);
 
+        final Long eventId = this.saveEvent(tenantId, entity, action, payload);
+
+        this.publishEvent(eventType, eventId);
+    }
     @Transactional
     public Long createSmsBridgeConfig(final SMSBridgeConfig smsBridgeConfig) {
         final Date now = new Date();
@@ -117,19 +126,13 @@ public class SMSBridgeService implements ApplicationEventPublisherAware {
                 break;
             case CLIENT_PAYMENTS:
                 this.eventPublisher.publishEvent(new ClientPaymentsEvent(this, eventId));
-                break;    
-            case LOAN_FIRST_AND_SECOND_OVERDUE_REPAYMENT_REMINDER:
-            	this.eventPublisher.publishEvent(new LoanFirstAndSecondOverdueRepaymentReminderEvent(this,eventId));
-            	break; 
-            case LOAN_THIRD_AND_FOURTH_OVERDUE_REPAYMENT_REMINDER:
-            	this.eventPublisher.publishEvent(new LoanThirdAndFourthOverdueRepaymentReminderEvent(this,eventId));
-            	break;             	
-            case LOAN_REPAYMENT_SMS_REMINDE:
-            	this.eventPublisher.publishEvent(new LoanRepaymentSmsReminderEvent(this,eventId));
-                break;
+                break;              
             case BULK_SMS_SEND:    
-                this.eventPublisher.publishEvent(new BulkSmsEvent(this,eventId));
+                this.eventPublisher.publishEvent(new BulkSmsEvent(this,eventId));                
                 break;
+            case INCOMING_SMS_RESPONSE_SEND:
+                this.eventPublisher.publishEvent(new IncomingSmsEvent(this,eventId));
+                break;    
         }
     }
 

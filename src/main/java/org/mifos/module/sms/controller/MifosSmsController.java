@@ -23,10 +23,15 @@ import org.mifos.module.sms.listener.BulkSmsListener;
 import org.mifos.module.sms.service.SMSBridgeService;
 import org.mifos.module.sms.service.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.*;
 
+
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.List;
 
 @RestController
@@ -35,6 +40,9 @@ public class MifosSmsController {
 
     private final SecurityService securityService;
     private final SMSBridgeService smsBridgeService;
+    
+    @Value("${tenantIdentifier}")
+    private String tenantIdentifier;
 
     @Autowired
     public MifosSmsController(final SecurityService securityService,
@@ -45,6 +53,8 @@ public class MifosSmsController {
         this.smsBridgeService = smsBridgeService;
     }
 
+   
+    
     @RequestMapping(value = "/sms", method = RequestMethod.POST, consumes = {"application/json"}, produces = {"application/json"})
     public ResponseEntity<Void> sendShortMessage(@RequestHeader("X-Mifos-API-Key") final String apiKey,
                                                  @RequestHeader("X-Mifos-Platform-TenantId") final String tenantId,
@@ -109,7 +119,18 @@ public class MifosSmsController {
 
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
-
+   
+    @RequestMapping(value = "/receivesms", method = RequestMethod.POST) 
+    public ResponseEntity<Void> reciveIncomingSmsRequestasbodyParam( @RequestBody final String  message) {
+      String [] str= message.split("&");
+      String [] textArray=str[1].split("=");
+      String text=textArray[1];
+      String [] mobileNoArray=str[5].split("=");
+      mobileNoArray[1] = URLDecoder.decode(mobileNoArray[1]);
+      String mobileNo=mobileNoArray[1]; 
+      this.smsBridgeService.sendMessageOnIncomingRequest("INCOMING", "SEND", tenantIdentifier, "{\"mobileNo\":\""+mobileNo+"\",\"message\":\""+text+"\"}");  
+      return new ResponseEntity<Void>(HttpStatus.OK);        
+  } 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public void handleInvalidApiKeyException(final InvalidApiKeyException ex) {
