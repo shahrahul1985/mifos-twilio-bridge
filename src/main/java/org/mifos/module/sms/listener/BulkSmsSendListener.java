@@ -9,6 +9,9 @@ import java.util.Date;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mifos.module.sms.domain.BulkSms;
 import org.mifos.module.sms.domain.BulkSmsListenerDomain;
 import org.mifos.module.sms.domain.BulkSmsResponse;
@@ -230,9 +233,14 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                                 Velocity.evaluate(velocityContext, stringWriter, "loanFirstAndSecondOverdueRepaymentReminder",
                                         this.messageTemplate);
                                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                                eventSource.setProcessed(Boolean.TRUE);
-                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                                JSONArray response= smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                                JSONObject result = response.getJSONObject(0);
+                                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                                {
+                                	eventSource.setProcessed(Boolean.TRUE);
+                                    eventSourceDetail.setProcessed(Boolean.TRUE);
+                                 }
+                                 eventSourceDetail.setMessage(stringWriter.toString());
                                 this.eventSourceDetailRepository.save(eventSourceDetail);
                                 logger.info("Loan First Overdue Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i)
                                         + " \n" + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n"
@@ -247,9 +255,14 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "loanFirstAndSecondOverdueRepaymentReminder",
                                     this.messageTemplate);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }                             
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("Loan First Overdue Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n"
                                     + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -266,10 +279,15 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                                 velocityContext.put("duedate", LoanDueDateList.get(i));
                                 Velocity.evaluate(velocityContext, stringWriter, "loanrepaymentsmsreminder", this.loanrepaymentsmsreminder);
                                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                                eventSource.setProcessed(Boolean.TRUE);
+                                JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                                JSONObject result = response.getJSONObject(0);
+                                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                                {
+                                	eventSource.setProcessed(Boolean.TRUE);
+                                    eventSourceDetail.setProcessed(Boolean.TRUE);
+                                 }                                 
                                 eventSourceDetail.setReportName(reportName);
-                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setMessage(stringWriter.toString());
                                 this.eventSourceDetailRepository.save(eventSourceDetail);
                                 logger.info("Loan Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n"
                                         + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -283,10 +301,14 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             velocityContext.put("duedate", LoanDueDateList.get(i));
                             Velocity.evaluate(velocityContext, stringWriter, "loanrepaymentsmsreminder", this.loanrepaymentsmsreminder);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
-                            this.eventSourceDetailRepository.save(eventSourceDetail);
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }                             
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("Loan Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n"
                                     + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -304,9 +326,13 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "loanFirstAndSecondOverdueRepaymentReminder",
                                     this.messageTemplate);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
+                            JSONArray response= smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            { 	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }
+                              eventSourceDetail.setMessage(stringWriter.toString());
                             eventSourceDetail.setReportName(reportName);
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("Loan Second Overdue Repayment Reminder Sms  to\n" + "clientName: " + clientNameList.get(i) + " \n"
@@ -317,10 +343,15 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "messageForThirdAndFourthOverdue",
                                     this.messageForThirdAndFourthOverdue);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
+                            JSONArray response= smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }
                             eventSourceDetail.setReportName(reportName);
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("Loan Third Overdue Repayment Reminder Sms  to\n" + "guarantorsName: " + guarantorsNameList.get(i)
                                     + " \n" + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -330,10 +361,15 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "messageForThirdAndFourthOverdue",
                                     this.messageForThirdAndFourthOverdue);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setReportName(reportName);
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }
+                             eventSourceDetail.setReportName(reportName);
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("Loan Fourth Overdue Repayment Reminder  to\n" + "guarantorsName: " + guarantorsNameList.get(i)
                                     + " \n" + "MobileNo: " + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -346,11 +382,16 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "messageForDefaultWarningToClient",
                                     this.messageForDefaultWarningToClient);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }
                             eventSourceDetail.setLastModifiedOn(now);
                             eventSourceDetail.setReportName(reportName);
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("DefaultWarning to  Clients  \n" + "clientName: " + clientNameList.get(i) + " \n" + "MobileNo: "
                                     + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -361,11 +402,16 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "messageForDefaultWarningTogurantor",
                                     this.messageForDefaultWarningTogurantor);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setLastModifiedOn(now);
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }
+                             eventSourceDetail.setLastModifiedOn(now);
                             eventSourceDetail.setReportName(reportName);
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("DefaultWarning to  Clients  \n" + "clientName: " + clientNameList.get(i) + " \n" + "MobileNo: "
                                     + mobileNo + "\n" + "loanId: " + entityIdList.get(i) + "\n" + "productName: "
@@ -377,11 +423,16 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
                             Velocity.evaluate(velocityContext, stringWriter, "messageForDormancyWarningToclient",
                                     this.messageForDormancyWarningToclient);
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                            eventSource.setProcessed(Boolean.TRUE);
-                            eventSourceDetail.setProcessed(Boolean.TRUE);
+                            JSONArray response= smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                            	eventSource.setProcessed(Boolean.TRUE);
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                             }
                             eventSourceDetail.setLastModifiedOn(now);
                             eventSourceDetail.setReportName(reportName);
+                            eventSourceDetail.setMessage(stringWriter.toString());
                             this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info("DormancyWarning to  Clients  \n" + "clientName: " + clientNameList.get(i) + " \n" + "MobileNo: "
                                     + mobileNo + "\n" + "SavingId: " + savingIdList.get(i) + "\n" + "productName: "
@@ -409,7 +460,10 @@ public class BulkSmsSendListener implements ApplicationListener<BulkSmsEvent> {
             } catch (ParseException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            }
+            } catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
             eventSource.setLastModifiedOn(new Date());
             eventSource.setProcessed(Boolean.TRUE);
             eventSourceDetail.setLastModifiedOn(new Date());

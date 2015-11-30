@@ -349,13 +349,14 @@ public class AfricasTalkingGateway implements SMSGateway
     	catch (Exception e) {throw e;}
     }
 	@Override
-	public void sendMessage(SMSBridgeConfig smsBridgeConfig, String mobileNo,
+	public JSONArray sendMessage(SMSBridgeConfig smsBridgeConfig, String mobileNo,
 			String message) throws SMSGatewayException {
+		JSONArray results=null;
 		try {
 			AfricasTalkingGateway africasTalkingGateway=new AfricasTalkingGateway(smsBridgeConfig.getSmsProviderToken(),smsBridgeConfig.getSmsProviderAccountId());
 			if(mobileNo!=null){
 			logger.info("Sending message to "+mobileNo);
-			JSONArray results=africasTalkingGateway.sendMessage(mobileNo,message);
+			 results=africasTalkingGateway.sendMessage(mobileNo,message);
 			System.out.println(results);
 			 for( int i = 0; i < results.length(); ++i ) {
                  JSONObject result = results.getJSONObject(i);
@@ -368,6 +369,6 @@ public class AfricasTalkingGateway implements SMSGateway
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+		return results;
 	}
 }

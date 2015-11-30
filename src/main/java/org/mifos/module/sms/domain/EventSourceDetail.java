@@ -77,6 +77,10 @@ public class EventSourceDetail {
 
     @Column(name = "report_name")
     private String reportName;
+    
+    @Column(name = "message")
+	private String message;
+
 
     public EventSourceDetail() {
         super();
@@ -185,5 +189,23 @@ public class EventSourceDetail {
     public void setLastModifiedOn(Date lastModifiedOn) {
         this.lastModifiedOn = lastModifiedOn;
     }
+
+	public String getEntityMobileNo() {
+		return entityMobileNo;
+	}
+
+	public void setEntityMobileNo(String entityMobileNo) {
+		this.entityMobileNo = entityMobileNo;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+    
+    
 
 }

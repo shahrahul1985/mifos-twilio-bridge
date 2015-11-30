@@ -17,6 +17,9 @@ package org.mifos.module.sms.listener;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mifos.module.sms.domain.Client;
 import org.mifos.module.sms.domain.CreateClientResponse;
 import org.mifos.module.sms.domain.EventSource;
@@ -38,6 +41,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 
@@ -106,10 +111,14 @@ public class CreateClientEventListener implements ApplicationListener<CreateClie
                 final StringWriter stringWriter = new StringWriter();
                 Velocity.evaluate(velocityContext, stringWriter, "CreateClientMessage", this.messageTemplate);
                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
-                logger.info("Message is: "+ stringWriter);
+                JSONArray response= smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                JSONObject result = response.getJSONObject(0);
+                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                {
+                    eventSource.setProcessed(Boolean.TRUE);
+                }
+                	logger.info("Message is: "+ stringWriter);
             }
-            eventSource.setProcessed(Boolean.TRUE);
             logger.info("Create client event processed!");
         } catch (RetrofitError rer) {
             if (rer.getResponse().getStatus() == 404) {
@@ -120,7 +129,10 @@ public class CreateClientEventListener implements ApplicationListener<CreateClie
         } catch (SMSGatewayException sgex) {
             eventSource.setProcessed(Boolean.FALSE);
             eventSource.setErrorMessage(sgex.getMessage());
-        }
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         eventSource.setLastModifiedOn(new Date());
         this.eventSourceRepository.save(eventSource);
     }

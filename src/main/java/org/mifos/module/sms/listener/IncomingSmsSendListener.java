@@ -2,10 +2,15 @@ package org.mifos.module.sms.listener;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mifos.module.sms.domain.EventSource;
+import org.mifos.module.sms.domain.EventSourceDetail;
 import org.mifos.module.sms.domain.IncomingSms;
 import org.mifos.module.sms.domain.IncomingSmsClientId;
 import org.mifos.module.sms.domain.IncomingSmsLoanAndSavingAccoutData;
@@ -19,6 +24,7 @@ import org.mifos.module.sms.parser.JsonParser;
 import org.mifos.module.sms.provider.RestAdapterProvider;
 import org.mifos.module.sms.provider.SMSGateway;
 import org.mifos.module.sms.provider.SMSGatewayProvider;
+import org.mifos.module.sms.repository.EventSourceDetailRepository;
 import org.mifos.module.sms.repository.EventSourceRepository;
 import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
 import org.mifos.module.sms.service.MifosIncomingSmsService;
@@ -62,17 +68,21 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
     private final RestAdapterProvider restAdapterProvider;
     private final SMSGatewayProvider smsGatewayProvider;
     private final JsonParser jsonParser;
+    private final EventSourceDetailRepository eventSourceDetailRepository;
+ 
 
     @Autowired
     public IncomingSmsSendListener(final SMSBridgeConfigRepository smsBridgeConfigRepository,
             final EventSourceRepository eventSourceRepository, final RestAdapterProvider restAdapterProvider,
-            final SMSGatewayProvider smsGatewayProvider, final JsonParser jsonParser) {
+            final SMSGatewayProvider smsGatewayProvider, final JsonParser jsonParser,
+            final EventSourceDetailRepository eventSourceDetailRepository) {
         super();
         this.smsBridgeConfigRepository = smsBridgeConfigRepository;
         this.eventSourceRepository = eventSourceRepository;
         this.restAdapterProvider = restAdapterProvider;
         this.smsGatewayProvider = smsGatewayProvider;
         this.jsonParser = jsonParser;
+        this.eventSourceDetailRepository=eventSourceDetailRepository;
     }
 
     @Transactional
@@ -96,14 +106,26 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
         int count=0;
         final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
         try {
+        	Date now =new Date();
             String message = "";
             final StringWriter stringWriter = new StringWriter();
             final VelocityContext velocityContext = new VelocityContext();
             final MifosIncomingSmsService IncomingSmsService = restAdapter.create(MifosIncomingSmsService.class);
             final ArrayList<IncomingSms> incomingSms = (ArrayList<IncomingSms>) IncomingSmsService.findClientId(AuthorizationTokenBuilder
                     .token(smsBridgeConfig.getMifosToken()).build(), smsBridgeConfig.getTenantId(), MobileNo, "clients");
+            EventSourceDetail eventSourceDetail = new EventSourceDetail();
+            eventSourceDetail.setAction("Send");
+            eventSourceDetail.setEntity("Notifications");
+            eventSourceDetail.setEventId(incomingSmsEvent.getEventId());
+            eventSourceDetail.setPayload(eventSource.getPayload()); 
+            eventSourceDetail.setTenantId(smsBridgeConfig.getTenantId());
+            eventSourceDetail.setEntityName("IncomingSms");
+            eventSourceDetail.setProcessed(Boolean.FALSE);
+            eventSourceDetail.setCreatedOn(now);
+            eventSourceDetail.setLastModifiedOn(now);           
             if (incomingSms.size() > 0) {
-                for(int i=0;i<incomingSms.size();i++){
+                for(int i=0;i<incomingSms.size();i++){                    
+                    
                 IncomingSms incomingSmsID = incomingSms.get(i);
                 String mobileNo ="";
                 if(incomingSmsID.getEntityMobileNo()!=null){
@@ -122,6 +144,9 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                         ArrayList<SavingsAccountSummaryData> sharesBalance = IncomingSmsService.findsharesBalance(
                                 AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),
                                 smsBridgeConfig.getTenantId(), incomingSmsID.getEntityId());
+                        //log
+                        //eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                                
                         //checking 
                            logger.info("Inital "+incomingSmsID.getEntityName());
                            logger.info("Inital "+incomingSmsID.getParentName());
@@ -160,7 +185,16 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                                 velocityContext.put("balancemessage", message); 
                                 Velocity.evaluate(velocityContext, stringWriter, "balance", this.balance);                    
                              
-                            smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                            }
+                            eventSourceDetail.setEntityMobileNo(mobileNo);
+                            eventSourceDetail.setMessage(stringWriter.toString());
+                            eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                            this.eventSourceDetailRepository.save(eventSourceDetail);
                             logger.info(stringWriter.toString());
                             }
                             else{
@@ -168,7 +202,16 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                                 velocityContext.put("name", str[0]);
                                 velocityContext.put("branch", incomingSmsID.getParentName());                     
                                 Velocity.evaluate(velocityContext, stringWriter, "loanAndSavingBalance", this.loanAndSavingBalance);                             
-                                smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString()); 
+                                JSONArray response=smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString()); 
+                                JSONObject result = response.getJSONObject(0);
+                                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                                {
+                                    eventSourceDetail.setProcessed(Boolean.TRUE);
+                                }
+                                eventSourceDetail.setEntityMobileNo(mobileNo);
+                                eventSourceDetail.setMessage(stringWriter.toString());
+                                eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                                this.eventSourceDetailRepository.save(eventSourceDetail);                               
                                 logger.info(stringWriter.toString());
                             }
                         }
@@ -197,7 +240,16 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                             if(message!=null && message!=""){
                                 velocityContext.put("meassage", message); 
                                 Velocity.evaluate(velocityContext, stringWriter, "miniStatement", this.miniStatement);                         
-                            smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                            JSONArray response= smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                            }
+                            eventSourceDetail.setMessage(stringWriter.toString());
+                            eventSourceDetail.setEntityMobileNo(mobileNo);
+                            eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                            this.eventSourceDetailRepository.save(eventSourceDetail);                           
                             logger.info(stringWriter.toString());
                             }
                             else{
@@ -206,11 +258,31 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                                 velocityContext.put("branch", incomingSmsID.getParentName());                         
                                 if(loanAccounts!=null||sharesBalance.size()>0){
                                 Velocity.evaluate(velocityContext, stringWriter, "loanAndSavingsTransaction", this.loanAndSavingsTransaction);                             
-                                smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                                JSONArray response= smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                                JSONObject result = response.getJSONObject(0);
+                                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                                {
+                                	eventSource.setProcessed(Boolean.TRUE);
+                                    eventSourceDetail.setProcessed(Boolean.TRUE);
+
+                                }
+                                eventSourceDetail.setMessage(stringWriter.toString());
+                                eventSourceDetail.setEntityMobileNo(mobileNo);
+                                eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                                this.eventSourceDetailRepository.save(eventSourceDetail);                               
                                 logger.info(stringWriter.toString());}
                                 else{
                                     Velocity.evaluate(velocityContext, stringWriter, "loanAndSavingBalance", this.loanAndSavingBalance);                            
-                                    smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                                    JSONArray response=smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                                    JSONObject result = response.getJSONObject(0);
+                                    if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                                    {
+                                        eventSourceDetail.setProcessed(Boolean.TRUE);
+                                    }
+                                    eventSourceDetail.setMessage(stringWriter.toString());
+                                    eventSourceDetail.setEntityMobileNo(mobileNo);
+                                    eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                                    this.eventSourceDetailRepository.save(eventSourceDetail);                                   
                                     logger.info(stringWriter.toString());
                                 }
                             }
@@ -222,7 +294,18 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                             velocityContext.put("branch", incomingSmsID.getParentName());                     
                             Velocity.evaluate(velocityContext, stringWriter, "invalidText", this.invalidText);                            
                             logger.info(stringWriter.toString());
-                            smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+
+                            }
+                            eventSourceDetail.setMessage(stringWriter.toString());
+                            eventSourceDetail.setEntityMobileNo(mobileNo);
+                            eventSourceDetail.setEntitydescription("clientId:" + incomingSmsID.getEntityId() + " " + "clientName:" + incomingSmsID.getEntityName());
+                            this.eventSourceDetailRepository.save(eventSourceDetail);
+                           
                         }
                     }
                     else{
@@ -232,7 +315,16 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                             Velocity.evaluate(null, stringWriter, "unregisteredmobilenumbers", this.unregisteredmobilenumbers);
                             logger.info(stringWriter.toString());
                             final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                            smsGateway.sendMessage(smsBridgeConfig,incomingMobileNo, stringWriter.toString());                    
+                            JSONArray response=smsGateway.sendMessage(smsBridgeConfig,incomingMobileNo, stringWriter.toString());
+                            JSONObject result = response.getJSONObject(0);
+                            if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                            {
+                                eventSourceDetail.setProcessed(Boolean.TRUE);
+                            }
+                            eventSourceDetail.setMessage(stringWriter.toString());
+                            eventSourceDetail.setEntityMobileNo(mobileNo);
+                            eventSourceDetail.setEntitydescription("clientId:" + " " + " " + "clientName:" + " ");
+                            this.eventSourceDetailRepository.save(eventSourceDetail);                           
                         }
                     }
                 }
@@ -241,7 +333,18 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                         Velocity.evaluate(null, stringWriter, "unregisteredmobilenumbers", this.unregisteredmobilenumbers);
                         logger.info(stringWriter.toString());
                         final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                        smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                        JSONArray response=smsGateway.sendMessage(smsBridgeConfig, incomingMobileNo, stringWriter.toString());
+                        JSONObject result = response.getJSONObject(0);
+                        if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                        {
+                            eventSourceDetail.setProcessed(Boolean.TRUE);
+
+                        }
+                        eventSourceDetail.setMessage(stringWriter.toString());
+                        eventSourceDetail.setEntityMobileNo( incomingMobileNo);
+                        eventSourceDetail.setEntitydescription("clientId:" + " " + " " + "clientName:" + " ");
+                        this.eventSourceDetailRepository.save(eventSourceDetail);                           
+            
                     }
                 
             
@@ -254,7 +357,10 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
             eventSource.setProcessed(Boolean.FALSE);
             eventSource.setErrorMessage(sgex.getMessage());
             sgex.printStackTrace();
-        }
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
     }
 

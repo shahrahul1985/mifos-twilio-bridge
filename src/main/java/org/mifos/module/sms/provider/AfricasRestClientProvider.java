@@ -23,15 +23,16 @@ public class AfricasRestClientProvider implements SMSGateway {
 		super();
     }
 	@Override
-	public void sendMessage(final SMSBridgeConfig smsBridgeConfig, final String mobileNo, final String message)
-	        throws SMSGatewayException {              
+	public JSONArray sendMessage(final SMSBridgeConfig smsBridgeConfig, final String mobileNo, final String message)
+	        throws SMSGatewayException { 
+		JSONArray results=null;
              String username = smsBridgeConfig.getSmsProviderToken();
              String apiKey   = smsBridgeConfig.getSmsProviderAccountId();
              
              AfricasTalkingGateway gateway  = new AfricasTalkingGateway(username, apiKey);
     
             try {
-            JSONArray results = gateway.sendMessage(mobileNo, message);
+             results = gateway.sendMessage(mobileNo, message);
             //logger.debug("Loan Repayment Reminder Sms  to event processed!");
                    for( int i = 0; i < results.length(); ++i ) {
                   JSONObject result = results.getJSONObject(i);
@@ -44,6 +45,7 @@ public class AfricasRestClientProvider implements SMSGateway {
        
        catch (Exception e) {
     	   logger.info("Encountered an error while sending " + e.getMessage());
-        }    
+        }  
+            return results;
    }	
 }

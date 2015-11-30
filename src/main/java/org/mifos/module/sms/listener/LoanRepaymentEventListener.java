@@ -17,6 +17,9 @@ package org.mifos.module.sms.listener;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mifos.module.sms.domain.*;
 import org.mifos.module.sms.event.LoanRepaymentEvent;
 import org.mifos.module.sms.exception.SMSGatewayException;
@@ -110,11 +113,14 @@ public class LoanRepaymentEventListener implements ApplicationListener<LoanRepay
                 Velocity.evaluate(velocityContext, stringWriter, "LoanRepaymentMessage", this.messageTemplate);
 
                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                JSONArray response= smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                JSONObject result = response.getJSONObject(0);
+                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                {
+                	eventSource.setProcessed(Boolean.TRUE);
+                }
                 logger.info("Message is: "+ stringWriter);
-            }
-            eventSource.setProcessed(Boolean.TRUE);
-            
+            }            
             logger.info("Loan repayment event processed!");
         } catch (RetrofitError rer) {
             if (rer.getResponse().getStatus() == 404) {
@@ -125,7 +131,10 @@ public class LoanRepaymentEventListener implements ApplicationListener<LoanRepay
         } catch (SMSGatewayException sgex) {
             eventSource.setProcessed(Boolean.FALSE);
             eventSource.setErrorMessage(sgex.getMessage());
-        }
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         eventSource.setLastModifiedOn(new Date());
         this.eventSourceRepository.save(eventSource);
     }

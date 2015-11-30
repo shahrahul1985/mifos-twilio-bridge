@@ -7,6 +7,9 @@ import java.util.List;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mifos.module.sms.domain.ClientPayments;
 import org.mifos.module.sms.domain.ClientPaymentsResponse;
 import org.mifos.module.sms.domain.EventSource;
@@ -182,13 +185,17 @@ public class ClientPaymentsEventListener implements
 
 						final SMSGateway smsGateway = this.smsGatewayProvider
 								.get(smsBridgeConfig.getSmsProvider());
-						smsGateway.sendMessage(smsBridgeConfig, mobileNo,
+						JSONArray response=smsGateway.sendMessage(smsBridgeConfig, mobileNo,
 								stringWriter.toString());
+						JSONObject result = response.getJSONObject(0);
+		                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+		                {
+		                	eventSource.setProcessed(Boolean.TRUE);
+							eventSourceDetails.setProcessed(Boolean.TRUE);
+		                }		                
 						logger.info("Message is: " + stringWriter);
 					}
 
-					eventSource.setProcessed(Boolean.TRUE);
-					eventSourceDetails.setProcessed(Boolean.TRUE);
 					logger.info("Client payments event processed!");
 				} catch (RetrofitError ret) {
 					if (ret.getResponse().getStatus() == 404) {
@@ -203,6 +210,9 @@ public class ClientPaymentsEventListener implements
 					eventSource.setErrorMessage(sgex.getMessage());
 					eventSourceDetails.setProcessed(Boolean.FALSE);
 					eventSourceDetails.setErrorMessage(sgex.getMessage());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				eventSource.setLastModifiedOn(new Date());
 				eventSourceDetails.setLastModifiedOn(new Date());

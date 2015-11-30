@@ -6,6 +6,9 @@ import java.util.Date;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mifos.module.sms.domain.Client;
 import org.mifos.module.sms.domain.EventSource;
 import org.mifos.module.sms.domain.SMSBridgeConfig;
@@ -95,9 +98,13 @@ public class SavingAccountCloseEventListener implements ApplicationListener<Savi
                 Velocity.evaluate(velocityContext, stringWriter, "SavingAccountClosureMessage", this.messageTemplate);
 
                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
-                smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                JSONArray response=  smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                JSONObject result = response.getJSONObject(0);
+                if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
+                {
+                	eventSource.setProcessed(Boolean.TRUE);
+                }
             }
-            eventSource.setProcessed(Boolean.TRUE);
             logger.info("savings Account Closure event processed!");
         } catch (RetrofitError rer) {
             if (rer.getResponse().getStatus() == 404) {
@@ -108,7 +115,10 @@ public class SavingAccountCloseEventListener implements ApplicationListener<Savi
         } catch (SMSGatewayException sgex) {
             eventSource.setProcessed(Boolean.FALSE);
             eventSource.setErrorMessage(sgex.getMessage());
-        }
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         eventSource.setLastModifiedOn(new Date());
         this.eventSourceRepository.save(eventSource);
     }

@@ -15,10 +15,11 @@
  */
 package org.mifos.module.sms.provider;
 
+import org.json.JSONArray;
 import org.mifos.module.sms.domain.SMSBridgeConfig;
 import org.mifos.module.sms.exception.SMSGatewayException;
 
 public interface SMSGateway {
-    void sendMessage(final SMSBridgeConfig smsBridgeConfig, final String mobileNo, final String message)
+	JSONArray sendMessage(final SMSBridgeConfig smsBridgeConfig, final String mobileNo, final String message)
             throws SMSGatewayException;
 }
