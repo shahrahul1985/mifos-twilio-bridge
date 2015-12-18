@@ -4,12 +4,14 @@ package org.mifos.module.sms.service;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.json.JSONArray;
 import org.mifos.module.sms.domain.IncomingSms;
 import org.mifos.module.sms.domain.IncomingSmsLoanAndSavingAccoutData;
 import org.mifos.module.sms.domain.LoanAccountData;
 import org.mifos.module.sms.domain.MiniStatementDetails;
 import org.mifos.module.sms.domain.SavingAccountTransactionData;
 import org.mifos.module.sms.domain.SavingsAccountSummaryData;
+import org.mifos.module.sms.domain.SmsEnabledBranch;
 
 import retrofit.http.GET;
 import retrofit.http.Header;
@@ -51,7 +53,12 @@ public interface MifosIncomingSmsService {
 	            @Header("X-Mifos-Platform-TenantId") String tenantIdentifier, @Path("clientId") final Long clientId);
 	               
 	    
-	         
+	    @GET("/datatables/{datatable}/{apptableId}")
+	    public  ArrayList<SmsEnabledBranch> findSmsEnabledOffice(@Header("Authorization") String authorization,
+	                         @Header("X-Mifos-Platform-TenantId") String tenantIdentifier,
+	                         @Path("datatable") final String datatable,@Path("apptableId") final long apptableId);
+	    
+	           
 
 
 }

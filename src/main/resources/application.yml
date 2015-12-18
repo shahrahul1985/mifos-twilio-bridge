@@ -22,6 +22,8 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
  
 tenantIdentifier: default
+
+dataTable: officedetails
   
 
 # message templates

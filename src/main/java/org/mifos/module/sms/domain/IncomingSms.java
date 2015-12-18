@@ -10,13 +10,16 @@ public class IncomingSms {
     private final String entityName;
     
     private final String parentName;
+    
+    private final Long parentId; 
 
-    public IncomingSms(Long entityId, String entityMobileNo, String entityName, String parentName) {
+    public IncomingSms(Long entityId, String entityMobileNo, String entityName, String parentName,Long parentId ) {
         super();
         this.entityId = entityId;
         this.entityMobileNo = entityMobileNo;
         this.entityName = entityName;
         this.parentName = parentName;
+        this.parentId =parentId;
     }
 
     
@@ -38,6 +41,11 @@ public class IncomingSms {
     public String getParentName() {
         return this.parentName;
     }
+
+
+	public Long getParentId() {
+		return parentId;
+	}
 
    
 }

@@ -2,6 +2,7 @@ package org.mifos.module.sms.listener;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 
 import org.apache.velocity.VelocityContext;
@@ -18,6 +19,7 @@ import org.mifos.module.sms.domain.LoanAccountSummaryData;
 import org.mifos.module.sms.domain.MiniStatementDetails;
 import org.mifos.module.sms.domain.SMSBridgeConfig;
 import org.mifos.module.sms.domain.SavingsAccountSummaryData;
+import org.mifos.module.sms.domain.SmsEnabledBranch;
 import org.mifos.module.sms.event.IncomingSmsEvent;
 import org.mifos.module.sms.exception.SMSGatewayException;
 import org.mifos.module.sms.parser.JsonParser;
@@ -60,6 +62,9 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
     
     @Value("${message.template.loanAndSavingsTransaction}")
     private String loanAndSavingsTransaction;
+    
+    @Value("${dataTable}")
+    private String dataTable;
 
     private static final Logger logger = LoggerFactory.getLogger(IncomingSmsSendListener.class);
 
@@ -136,6 +141,11 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                      * method for getting loans And Savings AccountBalance
                      */
                     if (MobileNo.equalsIgnoreCase(mobileNo)||mobileNo.equalsIgnoreCase(0+MobileNo)) {
+                    	ArrayList<SmsEnabledBranch> smsEnabledOffice = IncomingSmsService.findSmsEnabledOffice(AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),
+                    			smsBridgeConfig.getTenantId(), dataTable, incomingSmsID.getParentId());
+                    	     if(smsEnabledOffice.size()>0){
+                    	    	 if(smsEnabledOffice.get(0).getSms_enabled().equalsIgnoreCase("true")){                   	     
+                    	
                         IncomingSmsLoanAndSavingAccoutData incomingSmsLoanAndSavingAccoutData = IncomingSmsService.findDetails(
                                 AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),
                                 smsBridgeConfig.getTenantId(), incomingSmsID.getEntityId());                        
@@ -308,6 +318,8 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                            
                         }
                     }
+                  }
+                 }   	     
                     else{
                         count++;
                         if(count==incomingSms.size()){
@@ -328,6 +340,7 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                         }
                     }
                 }
+                     
             }
                     else {
                         Velocity.evaluate(null, stringWriter, "unregisteredmobilenumbers", this.unregisteredmobilenumbers);
