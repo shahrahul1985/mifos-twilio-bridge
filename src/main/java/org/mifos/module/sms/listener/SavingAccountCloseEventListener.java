@@ -99,6 +99,7 @@ public class SavingAccountCloseEventListener implements ApplicationListener<Savi
 
                 final SMSGateway smsGateway = this.smsGatewayProvider.get(smsBridgeConfig.getSmsProvider());
                 JSONArray response=  smsGateway.sendMessage(smsBridgeConfig, mobileNo, stringWriter.toString());
+                logger.info(stringWriter.toString());
                 JSONObject result = response.getJSONObject(0);
                 if(result.getString("status").equals("success")||result.getString("status").equalsIgnoreCase("success"))
                 {

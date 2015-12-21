@@ -154,6 +154,7 @@ public class ClientPaymentsEventListener implements
 					eventSourceDetails.setPayload(eventSource.getPayload());
 					eventSourceDetails.setTenantId(eventSource.getTenantId());
 					eventSourceDetails.setEntityId(receiptNo);
+					eventSourceDetails.setProcessed(Boolean.FALSE);
 					eventSourceDetails.setEntityName(paymentsData
 							.getClientName());
 					eventSourceDetails.setEntity_Mobile_No(paymentsData
