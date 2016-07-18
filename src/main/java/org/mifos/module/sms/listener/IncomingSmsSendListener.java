@@ -29,6 +29,7 @@ import org.mifos.module.sms.provider.SMSGatewayProvider;
 import org.mifos.module.sms.repository.EventSourceDetailRepository;
 import org.mifos.module.sms.repository.EventSourceRepository;
 import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
+import org.mifos.module.sms.repository.SmsEnabledBranchRepository;
 import org.mifos.module.sms.service.MifosIncomingSmsService;
 import org.mifos.module.sms.util.AuthorizationTokenBuilder;
 import org.slf4j.Logger;
@@ -74,13 +75,14 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
     private final SMSGatewayProvider smsGatewayProvider;
     private final JsonParser jsonParser;
     private final EventSourceDetailRepository eventSourceDetailRepository;
- 
+    private final SmsEnabledBranchRepository smsEnabledBranchRepository;
 
     @Autowired
     public IncomingSmsSendListener(final SMSBridgeConfigRepository smsBridgeConfigRepository,
             final EventSourceRepository eventSourceRepository, final RestAdapterProvider restAdapterProvider,
             final SMSGatewayProvider smsGatewayProvider, final JsonParser jsonParser,
-            final EventSourceDetailRepository eventSourceDetailRepository) {
+            final EventSourceDetailRepository eventSourceDetailRepository,
+            final SmsEnabledBranchRepository smsEnabledBranchRepository) {
         super();
         this.smsBridgeConfigRepository = smsBridgeConfigRepository;
         this.eventSourceRepository = eventSourceRepository;
@@ -88,6 +90,7 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
         this.smsGatewayProvider = smsGatewayProvider;
         this.jsonParser = jsonParser;
         this.eventSourceDetailRepository=eventSourceDetailRepository;
+        this.smsEnabledBranchRepository = smsEnabledBranchRepository;
     }
 
     @Transactional
@@ -107,7 +110,7 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
         int size = MobileNo.length();
         String incomingMobileNo = MobileNo.substring(1,size);
         //String Mobilenumber=MobileNo.substring(3,size);
-        MobileNo=MobileNo.substring(4,size);    
+       // MobileNo=MobileNo.substring(4,size);    
         int count=0;
         final RestAdapter restAdapter = this.restAdapterProvider.get(smsBridgeConfig);
         try {
@@ -117,7 +120,7 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
             final VelocityContext velocityContext = new VelocityContext();
             final MifosIncomingSmsService IncomingSmsService = restAdapter.create(MifosIncomingSmsService.class);
             final ArrayList<IncomingSms> incomingSms = (ArrayList<IncomingSms>) IncomingSmsService.findClientId(AuthorizationTokenBuilder
-                    .token(smsBridgeConfig.getMifosToken()).build(), smsBridgeConfig.getTenantId(), MobileNo, "clients");
+                    .token(smsBridgeConfig.getMifosToken()).build(), smsBridgeConfig.getTenantId(), incomingMobileNo, "clients");
             EventSourceDetail eventSourceDetail = new EventSourceDetail();
             eventSourceDetail.setAction("Send");
             eventSourceDetail.setEntity("Notifications");
@@ -129,10 +132,11 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
             eventSourceDetail.setCreatedOn(now);
             eventSourceDetail.setLastModifiedOn(now);           
             if (incomingSms.size() > 0) {
-                for(int i=0;i<incomingSms.size();i++){                    
-                    
-                IncomingSms incomingSmsID = incomingSms.get(i);
+                //for(int i=0;i<incomingSms.size();i++){                    
+                 for(IncomingSms incomingSmsID : incomingSms){  
+               // IncomingSms incomingSmsID = incomingSms.get(i);
                 String mobileNo ="";
+                Long officeId = incomingSmsID.getParentId();
                 if(incomingSmsID.getEntityMobileNo()!=null){
                     mobileNo=incomingSmsID.getEntityMobileNo();
                 }
@@ -140,11 +144,13 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                     /**
                      * method for getting loans And Savings AccountBalance
                      */
-                    if (MobileNo.equalsIgnoreCase(mobileNo)||mobileNo.equalsIgnoreCase(0+MobileNo)) {
-                    	ArrayList<SmsEnabledBranch> smsEnabledOffice = IncomingSmsService.findSmsEnabledOffice(AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),
-                    			smsBridgeConfig.getTenantId(), dataTable, incomingSmsID.getParentId());
-                    	     if(smsEnabledOffice.size()>0){
-                    	    	 if(smsEnabledOffice.get(0).getSms_enabled().equalsIgnoreCase("true")){                   	     
+                    if (incomingMobileNo.equalsIgnoreCase(mobileNo)||mobileNo.equalsIgnoreCase(0+MobileNo)) {
+                    	//ArrayList<SmsEnabledBranch> smsEnabledOffice = IncomingSmsService.findSmsEnabledOffice(AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),
+                    		//	smsBridgeConfig.getTenantId(), dataTable, incomingSmsID.getParentId());
+                    	
+                    	     if(officeId != null && incomingMobileNo!=null ){
+                    	    	 SmsEnabledBranch smsEnabledOffice = this.smsEnabledBranchRepository.findSmsEnabledDetailsByOfficeId(officeId);
+                    	    	 if(smsEnabledOffice.isSms_enabled() == true){                   	     
                     	
                         IncomingSmsLoanAndSavingAccoutData incomingSmsLoanAndSavingAccoutData = IncomingSmsService.findDetails(
                                 AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),

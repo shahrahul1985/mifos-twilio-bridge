@@ -16,7 +16,7 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:mysql://localhost:3306/caritas_database
+    url: jdbc:mysql://localhost:3306/caritas-live
     username: root
     password: mysql
     driver-class-name: com.mysql.jdbc.Driver

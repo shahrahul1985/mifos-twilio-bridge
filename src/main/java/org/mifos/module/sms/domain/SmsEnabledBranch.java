@@ -1,28 +1,42 @@
 package org.mifos.module.sms.domain;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "officedetails")
 public class SmsEnabledBranch {
 	
-	private final Long office_Id;
+	@Id
+	@GeneratedValue
+    private Long id;
 	
-	private final String sms_enabled;
+	@Column(name = "office_id")
+	private Long officeId;
+	
+    @Column(name = "sms_enabled")
+    private boolean sms_enabled;
 
-	
-	
-	public SmsEnabledBranch(Long office_Id, String sms_enabled) {
-		super();
-		this.office_Id = office_Id;
-		this.sms_enabled = sms_enabled;
+	public Long getOffice_id() {
+		return officeId;
 	}
 
-	public Long getOffice_Id() {
-		return office_Id;
+	public void setOffice_id(Long officeId) {
+		this.officeId = officeId;
 	}
 
-	public String getSms_enabled() {
+	public boolean isSms_enabled() {
 		return sms_enabled;
 	}
-	
-	
-	
 
+	public void setSms_enabled(boolean sms_enabled) {
+		this.sms_enabled = sms_enabled;
+	}
+    
+    
+    
+    
 }
