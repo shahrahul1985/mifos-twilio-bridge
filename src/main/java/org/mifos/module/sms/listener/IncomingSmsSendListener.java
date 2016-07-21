@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.json.JSONArray;
@@ -19,7 +20,6 @@ import org.mifos.module.sms.domain.LoanAccountSummaryData;
 import org.mifos.module.sms.domain.MiniStatementDetails;
 import org.mifos.module.sms.domain.SMSBridgeConfig;
 import org.mifos.module.sms.domain.SavingsAccountSummaryData;
-import org.mifos.module.sms.domain.SmsEnabledBranch;
 import org.mifos.module.sms.event.IncomingSmsEvent;
 import org.mifos.module.sms.exception.SMSGatewayException;
 import org.mifos.module.sms.parser.JsonParser;
@@ -29,7 +29,6 @@ import org.mifos.module.sms.provider.SMSGatewayProvider;
 import org.mifos.module.sms.repository.EventSourceDetailRepository;
 import org.mifos.module.sms.repository.EventSourceRepository;
 import org.mifos.module.sms.repository.SMSBridgeConfigRepository;
-import org.mifos.module.sms.repository.SmsEnabledBranchRepository;
 import org.mifos.module.sms.service.MifosIncomingSmsService;
 import org.mifos.module.sms.util.AuthorizationTokenBuilder;
 import org.slf4j.Logger;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,14 +75,13 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
     private final SMSGatewayProvider smsGatewayProvider;
     private final JsonParser jsonParser;
     private final EventSourceDetailRepository eventSourceDetailRepository;
-    private final SmsEnabledBranchRepository smsEnabledBranchRepository;
-
+    private final JdbcTemplate jdbcTemplate;
     @Autowired
     public IncomingSmsSendListener(final SMSBridgeConfigRepository smsBridgeConfigRepository,
             final EventSourceRepository eventSourceRepository, final RestAdapterProvider restAdapterProvider,
             final SMSGatewayProvider smsGatewayProvider, final JsonParser jsonParser,
             final EventSourceDetailRepository eventSourceDetailRepository,
-            final SmsEnabledBranchRepository smsEnabledBranchRepository) {
+            final JdbcTemplate jdbcTemplate) {
         super();
         this.smsBridgeConfigRepository = smsBridgeConfigRepository;
         this.eventSourceRepository = eventSourceRepository;
@@ -90,7 +89,7 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
         this.smsGatewayProvider = smsGatewayProvider;
         this.jsonParser = jsonParser;
         this.eventSourceDetailRepository=eventSourceDetailRepository;
-        this.smsEnabledBranchRepository = smsEnabledBranchRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Transactional
@@ -149,8 +148,9 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
                     		//	smsBridgeConfig.getTenantId(), dataTable, incomingSmsID.getParentId());
                     	
                     	     if(officeId != null && incomingMobileNo!=null ){
-                    	    	 SmsEnabledBranch smsEnabledOffice = this.smsEnabledBranchRepository.findSmsEnabledDetailsByOfficeId(officeId);
-                    	    	 if(smsEnabledOffice.isSms_enabled() == true){                   	     
+                    	    	boolean checkForSmsEnabled = isSmsEnabled(officeId);
+                    	    	 
+                    	    	 if(checkForSmsEnabled == true){                   	     
                     	
                         IncomingSmsLoanAndSavingAccoutData incomingSmsLoanAndSavingAccoutData = IncomingSmsService.findDetails(
                                 AuthorizationTokenBuilder.token(smsBridgeConfig.getMifosToken()).build(),
@@ -381,6 +381,13 @@ public class IncomingSmsSendListener implements ApplicationListener<IncomingSmsE
 			e.printStackTrace();
 		}
 
+    }
+    
+    public boolean isSmsEnabled(Long officeId){
+    	String sql = " SELECT sms_enabled FROM OfficeDetails WHERE office_id = " + officeId;
+    	int queryResult = this.jdbcTemplate.queryForInt(sql);
+    	boolean isSmsEnabled = BooleanUtils.toBoolean(queryResult);
+    	return isSmsEnabled;
     }
 
 }
