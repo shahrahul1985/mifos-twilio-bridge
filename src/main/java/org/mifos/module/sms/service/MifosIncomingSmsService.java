@@ -11,8 +11,6 @@ import org.mifos.module.sms.domain.LoanAccountData;
 import org.mifos.module.sms.domain.MiniStatementDetails;
 import org.mifos.module.sms.domain.SavingAccountTransactionData;
 import org.mifos.module.sms.domain.SavingsAccountSummaryData;
-import org.mifos.module.sms.domain.SmsEnabledBranch;
-
 import retrofit.http.GET;
 import retrofit.http.Header;
 import retrofit.http.Path;
@@ -52,13 +50,4 @@ public interface MifosIncomingSmsService {
 	    public ArrayList<SavingsAccountSummaryData> findsharesBalance(@Header("Authorization") String authorization,
 	            @Header("X-Mifos-Platform-TenantId") String tenantIdentifier, @Path("clientId") final Long clientId);
 	               
-	    
-	    @GET("/datatables/{datatable}/{apptableId}")
-	    public  ArrayList<SmsEnabledBranch> findSmsEnabledOffice(@Header("Authorization") String authorization,
-	                         @Header("X-Mifos-Platform-TenantId") String tenantIdentifier,
-	                         @Path("datatable") final String datatable,@Path("apptableId") final long apptableId);
-	    
-	           
-
-
 }
