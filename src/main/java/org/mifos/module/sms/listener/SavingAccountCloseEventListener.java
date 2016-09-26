@@ -91,6 +91,7 @@ public class SavingAccountCloseEventListener implements ApplicationListener<Savi
                 
                 logger.info("Mobile number found, sending message!");
                 final VelocityContext velocityContext = new VelocityContext();
+                velocityContext.put("firstName", client.getFirstname());
                 velocityContext.put("name", client.getDisplayName());
                 velocityContext.put("amount", lastTransactionAmount);
                 velocityContext.put("branch", client.getOfficeName());
