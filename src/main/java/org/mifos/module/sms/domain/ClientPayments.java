@@ -12,6 +12,8 @@ public class ClientPayments {
 	private String receiptNo;
 	private String mobileNo;
 	private Double totalAmount;
+	private String firstName;
+
 	private ArrayList<JsonObject> data = new ArrayList<JsonObject>();
 	
 	public ClientPayments() {
@@ -66,6 +68,14 @@ public class ClientPayments {
 		this.totalAmount = totalAmount;
 	}
 
+	public String getFirstName() {
+		return this.firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+	
 	public void getDataValues(ArrayList<JsonObject> data) {
 		
 		for(int i=0; i<data.size(); i++) {
@@ -84,7 +94,10 @@ public class ClientPayments {
 						System.out.println("Mobile Number can not be null...");
 					}
 					setMobileNo(rowData.get(j).getAsString());
-				}else if (j == 6) {
+				}else if (j == 4){
+					setFirstName(rowData.get(j).getAsString());
+				}
+				else if (j == 7) {
 					setTotalAmount(rowData.get(j).getAsDouble());
 				}
 			}

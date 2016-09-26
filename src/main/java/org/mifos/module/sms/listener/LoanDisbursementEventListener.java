@@ -91,6 +91,7 @@ public class LoanDisbursementEventListener implements ApplicationListener<LoanDi
 				logger.info("Mobile number found, sending message!");
 				
 				final VelocityContext velocityContext = new VelocityContext();
+				velocityContext.put("firstName", client.getFirstname());
 				velocityContext.put("clientName", client.getDisplayName());
 				velocityContext.put("branch", client.getOfficeName());
 				

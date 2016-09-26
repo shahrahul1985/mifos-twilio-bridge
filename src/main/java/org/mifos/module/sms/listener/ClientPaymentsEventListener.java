@@ -170,8 +170,11 @@ public class ClientPaymentsEventListener implements
 						logger.info("Mobile number found, sending message!");
 
 						final VelocityContext velocityContext = new VelocityContext();
+				
 						velocityContext.put("clientName",
 								paymentsData.getClientName());
+						velocityContext.put("firstName",
+								paymentsData.getFirstName());
 						velocityContext.put("totalAmount",
 								paymentsData.getTotalAmount());
 						velocityContext.put("branch",
